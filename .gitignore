@@ -1,0 +1,43 @@
+#
+# Compile time
+#
+*.o
+.deps/
+.libs/
+*.l[ao]
+
+#
+# Tests
+#
+*-test-vector-*.sh
+
+#
+# Autotools
+#
+lt*.m4
+shtool
+stamp-h1
+libtool*
+Makefile
+config.h*
+configure
+build-aux/
+aclocal.m4
+config.log
+Makefile.in
+config.status
+
+#
+# Generated binaries
+#
+grc-sign
+grc-verify
+grc-keygen
+grenache-get
+grenache-put
+grenache-keygen
+
+#
+# Distribution
+#
+*.tar.*

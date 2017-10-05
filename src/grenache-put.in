@@ -1,0 +1,245 @@
+#!/bin/bash
+############################################################################
+# This file is part of Grenache Command Line Interface.                    #
+#                                                                          #
+# Copyright (C) 2017 Davide Scola <davide@bitfinex.com>                    #
+#                                                                          #
+# Licensed under the Apache License,  Version 2.0 (the "License"); you may #
+# not use this file except in  compliance with the License. You may obtain #
+# a copy of the License at                                                 #
+#                                                                          #
+#       http://www.apache.org/licenses/LICENSE-2.0                         #
+#                                                                          #
+# Unless  required by  applicable law  or agreed  to in  writing, software #
+# distributed  under the  License  is  distributed on  an  "AS IS"  BASIS, #
+# WITHOUT  WARRANTIES  OR  CONDITIONS  OF  ANY  KIND,  either  express  or #
+# implied. See the License for the specific language governing permissions #
+# and limitations under the License.                                       #
+############################################################################
+
+ME="${BASH_SOURCE[0]}"
+WHOAMI="$(@READLINK@ -snf "${ME}")"
+ARGV=$(@GETOPT@ -o 'c:g:hm:n:p:s:t' --long 'cas:,grape:,help,mutable,number:,port:,salt:,tls' -n "${ME##*/}" -- "$@") || exit 1
+
+TLS=''
+CAS=''
+SALT=''
+MUTABLE=''
+PORT=30001
+HOSTNAME='127.0.0.1'
+SEQUENCE="$(@DATE@ '+%s%6N')"
+
+
+# Show program's help.
+function show_help {
+  @CAT@ <<_EOF
+Usage:
+    ${ME##*/} [OPTIONS] <value>... -- send a PUT request to the DHT
+
+    Options:
+
+        -c, --cas               Set the compare and swap number
+        -g, --grape             Set the Grape hostname
+        -m, --mutable           Send a mutable PUT request
+        -n, --number            Set the sequence number of this PUT request
+        -p, --port              Set the Grape port number
+        -s, --salt              Set salt for this request
+        -t, --tls               Enable TLS
+
+        -h, --help              Show this message
+
+    The order of the specified options is not relevant.
+_EOF
+
+  exit 1
+}
+
+
+while true; do
+  case "$1" in
+    -c | --cas )
+      [[ "${2}" =~ ^[0-9]+$ ]] || {
+        echo "${ME##*/}: error: invalid compare and swap number." >&2
+        exit 1
+      }
+
+      [[ "${2}" -ne "$((${2} & 0x7FFFFFFFFFFFFFFF))" ]] && {
+        echo "${ME##*/}: error: compare and swap number too big." >&2
+        exit 1
+      }
+
+      CAS="$((${2} & 0x7FFFFFFFFFFFFFFF))"; shift 2
+      ;;
+    -g | --grape )
+      [[ -z "${2}" ]] && {
+        echo "${ME##*/}: error: empty Grape hostname." >&2
+        exit 1
+      }
+
+      HOSTNAME="${2}"; shift 2
+      ;;
+    -h | --help )
+      show_help; shift 1
+      ;;
+    -m | --mutable )
+      MUTABLE='yes'; shift 1
+      ;;
+    -n | --number )
+      [[ "${2}" =~ ^[0-9]+$ ]] || {
+        echo "${ME##*/}: error: invalid sequence number." >&2
+        exit 1
+      }
+
+      [[ "${2}" -ne "$((${2} & 0x7FFFFFFFFFFFFFFF))" ]] && {
+        echo "${ME##*/}: error: sequence number too big." >&2
+        exit 1
+      }
+
+      SEQUENCE="$((${2} & 0x7FFFFFFFFFFFFFFF))"; shift 2
+      ;;
+    -p | --port )
+      [[ "${2}" =~ ^[0-9]+$ ]] || {
+        echo "${ME##*/}: error: invalid Grape port number." >&2
+        exit 1
+      }
+
+      [[ "$((${2} & 0xFFFF))" -eq 0 ]] && {
+        echo "${ME##*/}: error: Grape port number must be greater than zero." >&2
+        exit 1
+      }
+
+      [[ "${2}" -ne "$((${2} & 0xFFFF))" ]] && {
+        echo "${ME##*/}: error: Grape port number too big." >&2
+        exit 1
+      }
+
+      PORT="$((${2} & 0xFFFF))"; shift 2
+      ;;
+    -s | --salt )
+      [[ -z "${2}" ]] && {
+        echo "${ME##*/}: error: empty salt string." >&2
+        exit 1
+      }
+
+      [[ "${#2}" -gt 64 ]] && {
+        echo "${ME##*/}: error: salt is too big." >&2
+        exit 1
+      }
+
+      SALT="${2}"; shift 2
+      ;;
+    -t | --tls )
+      TLS='yes'; shift 1
+      ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
+
+[[ "${#}" -lt 1 ]] && {
+  show_help
+}
+
+[[ -f "${HOME}/.grenache-cli/grenache-cli.conf" ]] || {
+  echo "${ME##*/}: error: you need to run \`grenache-keygen' first." >&2
+  exit 1
+}
+
+exec {debug}>>/dev/null
+
+VALUE="${*}"
+
+[[ "${#VALUE}" -gt 1000 ]] && {
+  echo "${ME##*/}: warning: value is too big and it will be truncated." >&2
+  VALUE="${VALUE:0:1000}"
+}
+
+PROPERTIES='"v": $v'
+ARGUMENTS=(
+  --arg 'v' "${VALUE}"
+)
+
+[[ "x${MUTABLE}" == 'xyes' ]] && {
+  CHALLENGE=''
+
+  PROPERTIES+=', "seq": $seq | tonumber, "k": $k'
+  ARGUMENTS+=(
+    --arg 'seq' "${SEQUENCE}"
+    --arg 'k' "$(@CAT@ ${HOME}/.grenache-cli/key.pub 2>&"${debug}")"
+  )
+
+  [[ "x${SALT}" != 'x' ]] && {
+    PROPERTIES+=', "salt": $salt'
+    ARGUMENTS+=(
+      --arg 'salt' "${SALT}"
+    )
+
+    CHALLENGE+="4:salt${#SALT}:${SALT}"
+  }
+
+  CHALLENGE+="3:seqi${SEQUENCE}e1:v${#VALUE}:${VALUE}"
+
+  SIGNATURE="$(${WHOAMI%/*}/grc-sign "${CHALLENGE}" \
+    @SKEY_FILENO@< "${HOME}/.grenache-cli/key" \
+    @PKEY_FILENO@< "${HOME}/.grenache-cli/key.pub" \
+      2>&"${debug}"
+  )"
+
+  [[ "x${SIGNATURE}" = 'x' ]] && {
+    echo "${ME##*/}: error: cannot sign challenge buffer." >&2
+
+    exec {debug}>&-
+    exit 1
+  }
+
+  PROPERTIES+=', "sig": $sig'
+  ARGUMENTS+=(
+    --arg 'sig' "${SIGNATURE}"
+  )
+
+  [[ "x${CAS}" != 'x' ]] && {
+    PROPERTIES+=', "cas": $cas | tonumber'
+    ARGUMENTS+=(
+      --arg 'cas' "${CAS}"
+    )
+  }
+}
+
+HASH="$(@JQ@ -cMr '.' < <(
+  @CURL@ -qK "${HOME}/.grenache-cli/grenache-cli.conf" "http${TLS:+s}://${HOSTNAME}:${PORT}/put" < <( \
+    @JQ@ -cnM \
+      "${ARGUMENTS[@]}" \
+      --arg 'rid' "$(@UUIDGEN@)" \
+      "{ "data": { ${PROPERTIES} }, "rid": \$rid }" 2>&"${debug}" \
+  ) 2>&"${debug}" \
+) 2>&"${debug}")"
+
+[[ "${HASH}" =~ ^[a-fA-F0-9]{40}$ ]] || {
+  echo "${ME##*/}: error: ${HASH:-empty response received from Grape}." >&2
+
+  exec {debug}>&-
+  exit 1
+}
+
+[[ "x${MUTABLE}" == 'xyes' ]] && {
+  CHECK="$(@SHA1SUM@ < <( \
+    printf '%s%s' "$(@XXD@ -r -p < <(@CAT@ ${HOME}/.grenache-cli/key.pub 2>&"${debug}") 2>&"${debug}")" "${SALT}" 2>&"${debug}" \
+  ) 2>&"${debug}")"
+} || {
+  CHECK="$(@SHA1SUM@ < <( \
+    printf '%d:%s' "${#VALUE}" "${VALUE}" 2>&"${debug}" \
+  ) 2>&"${debug}")"
+}
+
+[[ "x${HASH}" = "x${CHECK%% *}" ]] || {
+  echo "${ME##*/}: error: unexpected hash value." >&2
+
+  exec {debug}>&-
+  exit 1
+}
+
+echo "${HASH}"
+
+exec {debug}>&-
+exit 0

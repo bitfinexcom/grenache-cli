@@ -1,0 +1,28 @@
+############################################################################
+# This file is part of Grenache Command Line Interface.                    #
+#                                                                          #
+# Copyright (C) 2017 Davide Scola <davide@bitfinex.com>                    #
+#                                                                          #
+# Licensed under the Apache License,  Version 2.0 (the "License"); you may #
+# not use this file except in  compliance with the License. You may obtain #
+# a copy of the License at                                                 #
+#                                                                          #
+#       http://www.apache.org/licenses/LICENSE-2.0                         #
+#                                                                          #
+# Unless  required by  applicable law  or agreed  to in  writing, software #
+# distributed  under the  License  is  distributed on  an  "AS IS"  BASIS, #
+# WITHOUT  WARRANTIES  OR  CONDITIONS  OF  ANY  KIND,  either  express  or #
+# implied. See the License for the specific language governing permissions #
+# and limitations under the License.                                       #
+############################################################################
+
+[ -x "${GRENACHE_VERIFY}" ] || exit 77
+
+"${GRENACHE_VERIFY}" '3:seqi1e1:v12:Hello World!' \
+  @PKEY_FILENO@<<_EOK @SIGN_FILENO@<<_EOS >/dev/null 2>/dev/null
+77ff84905a91936367c01360803104f92432fcd904a43511876df5cdf3e7e548
+_EOK
+305ac8aeb6c9c151fa120f120ea2cfb923564e11552d06a5d856091e5e853cff1260d3f39e4999684aa92eb73ffd136e6f4f3ecbfda0ce53a1608ecd7ae21f01
+_EOS
+
+[ "${?}" -eq 0 ] && exit 0 || exit 99
