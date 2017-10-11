@@ -31,6 +31,8 @@
 
 #ifdef HAVE_BSD_STRING_H
 # include <bsd/string.h>
+#else
+# include <string.h>
 #endif
 
 #include <ed25519.h>
