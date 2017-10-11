@@ -15,9 +15,9 @@ dnl implied. See the License for the specific language governing permissions
 dnl and limitations under the License.
 
 AC_PREREQ(2.69)
-AC_INIT([grenache-cli], [0.1.0], [davide@bitfinex.com])
+AC_INIT([grenache-cli], [0.1.1], [davide@bitfinex.com])
 
-AC_SUBST([VERSION], [0.1.0])
+AC_SUBST([VERSION], [0.1.1])
 AC_SUBST([SB], [`$srcdir/shtool echo -n -e %B`])
 AC_SUBST([EB], [`$srcdir/shtool echo -n -e %b`])
 
@@ -75,22 +75,24 @@ dnl Checks for libraries.
 dnl --------------------------------------------------------------------
 AX_MSG_BOLD([Checking for required libraries])
 
-PKG_CHECK_MODULES([libbsd], [libbsd], [
-  AX_SAVE_FLAGS([ac_cv_libbsd])
+AC_CHECK_HEADERS([bsd/string.h], [
+  PKG_CHECK_MODULES([libbsd], [libbsd], [
+    AX_SAVE_FLAGS([ac_cv_libbsd])
 
-  AX_APPEND_FLAG([${libbsd_LIBS}], [LIBS])
-  AX_APPEND_FLAG([${libbsd_CFLAGS}], [CFLAGS])
+    AX_APPEND_FLAG([${libbsd_LIBS}], [LIBS])
+    AX_APPEND_FLAG([${libbsd_CFLAGS}], [CFLAGS])
 
-  AC_MSG_CHECKING([if libbsd can be linked correctly])
+    AC_MSG_CHECKING([if libbsd can be linked correctly])
 
-  AC_LINK_IFELSE([AC_LANG_SOURCE([[int main() { return 0; }]])], [
-    AC_MSG_RESULT(yes)
+    AC_LINK_IFELSE([AC_LANG_SOURCE([[int main(void) { return 0; }]])], [
+      AC_MSG_RESULT([yes])
 
-    AX_APPEND_FLAG([${libbsd_LIBS}], [LLDP_LDFLAGS])
-    AX_APPEND_FLAG([${libbsd_CFLAGS}], [LLDP_CFLAGS])
-  ], [
-    AC_MSG_RESULT(no)
-    AX_RESTORE_FLAGS([ac_cv_libbsd])
+      AX_APPEND_FLAG([${libbsd_LIBS}], [LLDP_LDFLAGS])
+      AX_APPEND_FLAG([${libbsd_CFLAGS}], [LLDP_CFLAGS])
+    ], [
+      AC_MSG_RESULT([no])
+      AX_RESTORE_FLAGS([ac_cv_libbsd])
+    ])
   ])
 ])
 
@@ -100,7 +102,7 @@ dnl --------------------------------------------------------------------
 AX_MSG_BOLD([Checking for required header files])
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h unistd.h bsd/string.h], [], [
+AC_CHECK_HEADERS([fcntl.h unistd.h], [], [
   AC_MSG_ERROR([missing $ac_header vital header file])
 ])
 
