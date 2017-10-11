@@ -15,9 +15,9 @@ dnl implied. See the License for the specific language governing permissions
 dnl and limitations under the License.
 
 AC_PREREQ(2.69)
-AC_INIT([grenache-cli], [0.1.0], [davide@bitfinex.com])
+AC_INIT([grenache-cli], [0.1.1], [davide@bitfinex.com])
 
-AC_SUBST([VERSION], [0.1.0])
+AC_SUBST([VERSION], [0.1.1])
 AC_SUBST([SB], [`$srcdir/shtool echo -n -e %B`])
 AC_SUBST([EB], [`$srcdir/shtool echo -n -e %b`])
 
