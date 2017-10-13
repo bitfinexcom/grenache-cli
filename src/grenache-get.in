@@ -135,17 +135,17 @@ do
     CHALLENGE=''
 
     @JQ@ -e 'has("salt")' >/dev/null 2>&"${debug}" <<<"${JSON}" && {
-      CHALLENGE+="$(@JQ@ -cMjr '"4:salt\(.salt.data | implode | length):\(.salt.data | implode)"' 2>&"${debug}" <<<"${JSON}")"
+      CHALLENGE+="$(@JQ@ -cMjr '"4:salt\(.salt | length):\(.salt)"' 2>&"${debug}" <<<"${JSON}")"
     }
 
     CHALLENGE+="$(@JQ@ -cMjr '"3:seqi" + "\(.seq)" + "e1:v" + "\(.v | length):\(.v)"' 2>&"${debug}" <<<"${JSON}")"
 
     ${WHOAMI%/*}/grc-verify "${CHALLENGE}" \
       @PKEY_FILENO@< <( \
-        printf '%02x' $(@JQ@ -cMr 'select(.k.data) | @sh "\(.k.data)"' <<<"${JSON}" 2>&"${debug}")
+        @JQ@ -cMr 'select(.k) | .k' <<<"${JSON}" 2>&"${debug}"
       ) \
       @SIGN_FILENO@< <( \
-        printf '%02x' $(@JQ@ -cMr 'select(.sig.data) | @sh "\(.sig.data)"' <<<"${JSON}" 2>&"${debug}")
+        @JQ@ -cMr 'select(.sig) | .sig' <<<"${JSON}" 2>&"${debug}"
       ) >/dev/null 2>&"${debug}" || {
       echo "${ME##*/}: error: cannot verify challenge buffer." >&2
 
@@ -154,8 +154,9 @@ do
     }
 
     CHECK="$(@SHA1SUM@ < <( \
-      @XXD@ -r -p < <( \
-        printf '%02x' $(@JQ@ -cMr 'select(.k.data) | @sh "\(.k.data + .salt.data)"' <<<"${JSON}" 2>&"${debug}")
+      printf '%s' \
+        "$(@XXD@ -r -p < <( @JQ@ -cMr 'select(.k) | .k' <<<"${JSON}" 2>&"${debug}" ))" \
+        "$(@JQ@ -cMr 'select(.salt) | .salt' <<<"${JSON}" 2>&"${debug}")"
       ) 2>&"${debug}" \
     ) 2>&"${debug}")"
   } || {
