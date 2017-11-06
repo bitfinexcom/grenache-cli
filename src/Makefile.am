@@ -16,6 +16,11 @@
 # and limitations under the License.                                       #
 ############################################################################
 
+CFLAGS = $(WARN_CFLAGS)
+LDFLAGS = $(WARN_LDFLAGS)
+CPPFLAGS = -I$(top_srcdir)/include
+
+
 bin_PROGRAMS = \
 grc-keygen \
 grc-sign \
@@ -43,76 +48,40 @@ $(top_srcdir)/ed25519/src/sha512.c \
 $(top_srcdir)/ed25519/src/sign.c \
 $(top_srcdir)/ed25519/src/verify.c
 
-libed25519_la_CFLAGS = \
-$(WARN_CFLAGS)
-
-libed25519_la_LDFLAGS = \
-$(WARN_LDFLAGS)
-
 
 libcommon_la_SOURCES = \
 io.c \
 encode.c
-
-libcommon_la_CPPFLAGS = \
--I$(top_srcdir)/include
-
-libcommon_la_CFLAGS = \
-$(WARN_CFLAGS)
-
-libcommon_la_LDFLAGS = \
-$(WARN_LDFLAGS)
 
 
 grc_keygen_SOURCES = \
 grc-keygen.c
 
 grc_keygen_CPPFLAGS = \
--I$(top_srcdir)/include \
 -I$(top_srcdir)/ed25519/src
 
 grc_keygen_LDADD = \
 libcommon.la \
 libed25519.la
 
-grc_keygen_CFLAGS = \
-$(WARN_CFLAGS)
-
-grc_keygen_LDFLAGS = \
-$(WARN_LDFLAGS)
-
 
 grc_sign_SOURCES = \
 grc-sign.c
 
 grc_sign_CPPFLAGS = \
--I$(top_srcdir)/include \
 -I$(top_srcdir)/ed25519/src
 
 grc_sign_LDADD = \
 libcommon.la \
 libed25519.la
 
-grc_sign_CFLAGS = \
-$(WARN_CFLAGS)
-
-grc_sign_LDFLAGS = \
-$(WARN_LDFLAGS)
-
 
 grc_verify_SOURCES = \
 grc-verify.c
 
 grc_verify_CPPFLAGS = \
--I$(top_srcdir)/include \
 -I$(top_srcdir)/ed25519/src
 
 grc_verify_LDADD = \
 libcommon.la \
 libed25519.la
-
-grc_verify_CFLAGS = \
-$(WARN_CFLAGS)
-
-grc_verify_LDFLAGS = \
-$(WARN_LDFLAGS)
