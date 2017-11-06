@@ -76,7 +76,7 @@ dnl --------------------------------------------------------------------
 AX_MSG_BOLD([Checking for required libraries])
 
 AC_CHECK_HEADERS([bsd/string.h], [
-  PKG_CHECK_MODULES([libbsd], [libbsd], [
+  PKG_CHECK_MODULES([libbsd], [libbsd >= 0.8.0], [
     AX_SAVE_FLAGS([ac_cv_libbsd])
 
     AX_APPEND_FLAG([${libbsd_LIBS}], [LIBS])
