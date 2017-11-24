@@ -44,7 +44,8 @@ ax_gcc_x86_cpuid.m4 \
 ax_compiler_vendor.m4 \
 ax_gcc_archflag.m4 \
 ax_gcc_x86_cpu_supports.m4 \
-ax_check_x86_features.m4
+ax_check_x86_features.m4 \
+ax_enable_x86_features.m4
 
 MAINTAINERCLEANFILES = \
 libtool.m4 \
