@@ -16,9 +16,9 @@
 # and limitations under the License.                                       #
 ############################################################################
 
-CFLAGS = $(WARN_CFLAGS)
-LDFLAGS = $(WARN_LDFLAGS)
-CPPFLAGS = -I$(top_srcdir)/include
+CFLAGS += $(WARN_CFLAGS)
+LDFLAGS += $(WARN_LDFLAGS)
+CPPFLAGS += -I$(top_srcdir)/include
 
 
 bin_PROGRAMS = \

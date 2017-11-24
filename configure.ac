@@ -15,9 +15,9 @@ dnl implied. See the License for the specific language governing permissions
 dnl and limitations under the License.
 
 AC_PREREQ(2.69)
-AC_INIT([grenache-cli], [0.2.0], [davide@bitfinex.com])
+AC_INIT([grenache-cli], [0.2.1], [davide@bitfinex.com])
 
-AC_SUBST([VERSION], [0.2.0])
+AC_SUBST([VERSION], [0.2.1])
 AC_SUBST([SB], [`$srcdir/shtool echo -n -e %B`])
 AC_SUBST([EB], [`$srcdir/shtool echo -n -e %b`])
 
@@ -122,7 +122,7 @@ AX_C99_INLINE
 AX_GCC_FUNC_ATTRIBUTE([always_inline])
 AX_COMPILER_FLAGS
 AX_GCC_ARCHFLAG
-AX_CHECK_X86_FEATURES
+AX_ENABLE_X86_FEATURES
 
 dnl --------------------------------------------------------------------
 dnl Checks for library functions.
@@ -186,6 +186,7 @@ AC_MSG_RESULT
 AC_MSG_RESULT
    AX_MSG_OPTION([ Release ................. ], [${ax_is_release}])
    AX_MSG_OPTION([ Debug code .............. ], [${ax_enable_debug}])
+   AX_MSG_OPTION([ Enable x86 features ..... ], [${ax_cv_enable_x86_features}])
    AX_MSG_OPTION([ Warnings ................ ], [${ax_enable_compile_warnings}])
    AX_MSG_OPTION([ Secret Key Descriptor ... ], [${SKEY_FILENO}])
    AX_MSG_OPTION([ Public Key Descriptor ... ], [${PKEY_FILENO}])
