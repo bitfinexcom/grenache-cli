@@ -102,6 +102,7 @@ dnl --------------------------------------------------------------------
 AX_MSG_BOLD([Checking for required header files])
 
 AC_HEADER_STDC
+AC_CHECK_HEADERS([sys/random.h])
 AC_CHECK_HEADERS([fcntl.h unistd.h], [], [
   AC_MSG_ERROR([missing $ac_header vital header file])
 ])
@@ -128,6 +129,10 @@ dnl --------------------------------------------------------------------
 dnl Checks for library functions.
 dnl --------------------------------------------------------------------
 AX_MSG_BOLD([Checking for required library functions])
+
+AC_CHECK_FUNCS([getentropy], [
+  CPPFLAGS="-DED25519_NO_SEED ${CPPFLAGS}"
+])
 
 AC_CHECK_FUNCS([explicit_bzero], [], [
   AC_MSG_ERROR([missing $ac_func vital function])
@@ -180,6 +185,7 @@ AC_MSG_RESULT
 AC_MSG_RESULT
    AX_MSG_OPTION([Functions :])
 AC_MSG_RESULT
+   AX_MSG_OPTION([ getentropy .............. ], [${ac_cv_func_getentropy}])
    AX_MSG_OPTION([ explicit_bzero .......... ], [${ac_cv_func_explicit_bzero}])
 AC_MSG_RESULT
    AX_MSG_OPTION([Functionalities :])

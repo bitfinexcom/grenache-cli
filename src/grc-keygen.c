@@ -35,6 +35,10 @@
 # include <string.h>
 #endif
 
+#ifdef HAVE_SYS_RANDOM_H
+# include <sys/random.h>
+#endif
+
 #include <ed25519.h>
 #include "common.h"
 #include "io.h"
@@ -70,7 +74,11 @@ int main(void) {
     exit(EXIT_FAILURE);
   }
 
+#ifdef HAVE_GETENTROPY
+  if (getentropy(seed, ED25519_SEED_SIZE) != ED25519_SEED_SIZE) {
+#else
   if (ed25519_create_seed(seed) != 0) {
+#endif
 #if !defined(NDEBUG)
     (void) fprintf(stderr, "error: cannot initialize ed25519 seeder.\n");
 #endif
