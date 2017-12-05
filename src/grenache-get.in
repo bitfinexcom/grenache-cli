@@ -124,7 +124,7 @@ do
     exit 1
   }
 
-  JSON="$(@CURL@ -qK "${HOME}/.grenache-cli/grenache-cli.conf" "http${TLS:+s}://${HOSTNAME}:${PORT}/get" < <( \
+  JSON="$(@CURL@ -qK "${HOME}/.grenache-cli/grenache-cli.conf" -A '@PACKAGE@/@PACKAGE_VERSION@' "http${TLS:+s}://${HOSTNAME}:${PORT}/get" < <( \
     @JQ@ -cnM \
       --arg 'data' "${hash}" \
       --arg 'rid' "$(@UUIDGEN@)" \
