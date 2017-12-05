@@ -71,7 +71,6 @@ exec {debug}>>/dev/null
 #
 silent
 compress
-user-agent "@PACKAGE@/@PACKAGE_VERSION@"
 
 #
 # Request

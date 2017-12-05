@@ -207,7 +207,7 @@ ARGUMENTS=(
 }
 
 HASH="$(@JQ@ -cMr '.' < <(
-  @CURL@ -qK "${HOME}/.grenache-cli/grenache-cli.conf" "http${TLS:+s}://${HOSTNAME}:${PORT}/put" < <( \
+  @CURL@ -qK "${HOME}/.grenache-cli/grenache-cli.conf" -A '@PACKAGE@/@PACKAGE_VERSION@' "http${TLS:+s}://${HOSTNAME}:${PORT}/put" < <( \
     @JQ@ -cnM \
       "${ARGUMENTS[@]}" \
       --arg 'rid' "$(@UUIDGEN@)" \
