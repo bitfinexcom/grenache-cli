@@ -22,7 +22,7 @@ WHOAMI="$(@READLINK@ -snf "${ME}")"
 ARGV=$(@GETOPT@ -o 'g:hip:trvw' --long 'grape:,help,id,port:,tls,raw,value,write' -n "${ME##*/}" -- "$@") || exit 1
 
 TLS=''
-PORT=30001
+PORT=30002
 HOSTNAME='127.0.0.1'
 QUERY='select(.v) | .v'
 
