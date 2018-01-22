@@ -2,7 +2,7 @@
 ############################################################################
 # This file is part of Grenache Command Line Interface.                    #
 #                                                                          #
-# Copyright (C) 2017 Davide Scola <davide@bitfinex.com>                    #
+# Copyright (C) 2017, 2018 Davide Scola <davide@bitfinex.com>              #
 #                                                                          #
 # Licensed under the Apache License,  Version 2.0 (the "License"); you may #
 # not use this file except in  compliance with the License. You may obtain #
