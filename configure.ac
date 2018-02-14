@@ -15,9 +15,9 @@ dnl implied. See the License for the specific language governing permissions
 dnl and limitations under the License.
 
 AC_PREREQ(2.69)
-AC_INIT([grenache-cli], [0.3.2], [davide@bitfinex.com])
+AC_INIT([grenache-cli], [0.4.0], [davide@bitfinex.com])
 
-AC_SUBST([VERSION], [0.3.2])
+AC_SUBST([VERSION], [0.4.0])
 AC_SUBST([SB], [`$srcdir/shtool echo -n -e %B`])
 AC_SUBST([EB], [`$srcdir/shtool echo -n -e %b`])
 
@@ -164,6 +164,7 @@ AC_CONFIG_FILES([ \
   src/grenache-put \
   src/grenache-get \
   src/grenache-keygen \
+  src/grenache-lookup \
   tests/Makefile \
   tests/sign-test-vector-1.sh \
   tests/sign-test-vector-2.sh \

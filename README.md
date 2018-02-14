@@ -109,7 +109,28 @@ to retrieve the complete options list.
 
 ## Lookup peers
 
-Coming soon...
+The `grenache-lookup` command finds peers that expose the supplied _service_ identifier. To find a random peer that provides the [rest:net:util](https://github.com/bitfinexcom/bfx-util-net-js) service simply run something like this:
+
+```bash
+grenache-lookup 'rest:net:util'
+```
+
+For example, you can check the [platform status](https://docs.bitfinex.com/v2/reference#rest-public-platform-status) on each peer that exposes the _rest:api:v2_ service using something like this:
+
+```bash
+for authority in $(grenache-lookup --all 'rest:api:v2'); \
+do \
+  curl --write-out '\n' "http://${authority}/v2/platform/status"; \
+done
+```
+
+You can also pick the first peer in list using the `-f` switch or its long form `--first`. See
+
+```bash
+grenache-lookup --help
+```
+
+to retrieve the complete options list.
 
 
 ## Announce services
