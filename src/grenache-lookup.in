@@ -1,0 +1,158 @@
+#!/bin/bash
+############################################################################
+# This file is part of Grenache Command Line Interface.                    #
+#                                                                          #
+# Copyright (C) 2017, 2018 Davide Scola <davide@bitfinex.com>              #
+#                                                                          #
+# Licensed under the Apache License,  Version 2.0 (the "License"); you may #
+# not use this file except in  compliance with the License. You may obtain #
+# a copy of the License at                                                 #
+#                                                                          #
+#       http://www.apache.org/licenses/LICENSE-2.0                         #
+#                                                                          #
+# Unless  required by  applicable law  or agreed  to in  writing, software #
+# distributed  under the  License  is  distributed on  an  "AS IS"  BASIS, #
+# WITHOUT  WARRANTIES  OR  CONDITIONS  OF  ANY  KIND,  either  express  or #
+# implied. See the License for the specific language governing permissions #
+# and limitations under the License.                                       #
+############################################################################
+
+ME="${BASH_SOURCE[0]}"
+WHOAMI="$(@READLINK@ -snf "${ME}")"
+ARGV=$(@GETOPT@ -o 'afg:hlp:rt' --long 'all,first,grape:,help,last,port:,random,tls' -n "${ME##*/}" -- "$@") || exit 1
+
+TLS=''
+PORT=30002
+EXIT_CODE=1
+LOOKUP_OPTIONS=0
+HOSTNAME='127.0.0.1'
+
+readonly LOOKUP_ALL=1
+readonly LOOKUP_LAST=2
+readonly LOOKUP_FIRST=4
+readonly LOOKUP_RANDOM=8
+
+
+# Show program's help.
+function show_help {
+  @CAT@ <<_EOF
+Usage:
+    ${ME##*/} [OPTIONS] <service>... -- lookup a service in the DHT.
+
+    Options:
+
+        -a, --all               Pick all peers in list
+        -f, --first             Pick the first peer in list
+        -g, --grape             Set the Grape hostname
+        -l, --last              Pick the last peer in list
+        -p, --port              Set the Grape port number
+        -r, --random            Pick a random peer in list
+        -t, --tls               Enable TLS
+
+        -h, --help              Show this message
+
+    The order of the specified options is not relevant.
+_EOF
+
+  exit 1
+}
+
+
+while true; do
+  case "$1" in
+    -a | --all )
+      LOOKUP_OPTIONS=$((${LOOKUP_OPTIONS} | ${LOOKUP_ALL})); shift 1
+      ;;
+    -f | --first )
+      LOOKUP_OPTIONS=$((${LOOKUP_OPTIONS} | ${LOOKUP_FIRST})); shift 1
+      ;;
+    -g | --grape )
+      [[ -z "${2}" ]] && {
+        echo "${ME##*/}: error: empty Grape hostname." >&2
+        exit 1
+      }
+
+      HOSTNAME="${2}"; shift 2
+      ;;
+    -h | --help )
+      show_help; shift 1
+      ;;
+    -l | --last )
+      LOOKUP_OPTIONS=$((${LOOKUP_OPTIONS} | ${LOOKUP_LAST})); shift 1
+      ;;
+    -p | --port )
+      [[ "${2}" =~ ^[0-9]+$ ]] || {
+        echo "${ME##*/}: error: invalid Grape port number." >&2
+        exit 1
+      }
+
+      [[ "$((${2} & 0xFFFF))" -eq 0 ]] && {
+        echo "${ME##*/}: error: Grape port number must be greater than zero." >&2
+        exit 1
+      }
+
+      [[ "${2}" -ne "$((${2} & 0xFFFF))" ]] && {
+        echo "${ME##*/}: error: Grape port number too big." >&2
+        exit 1
+      }
+
+      PORT="$((${2} & 0xFFFF))"; shift 2
+      ;;
+    -r | --random )
+      LOOKUP_OPTIONS=$((${LOOKUP_OPTIONS} | ${LOOKUP_RANDOM})); shift 1
+      ;;
+    -t | --tls )
+      TLS='yes'; shift 1
+      ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
+
+[[ "${#}" -lt 1 ]] && {
+  show_help
+}
+
+[[ -f "${HOME}/.grenache-cli/grenache-cli.conf" ]] || {
+  echo "${ME##*/}: error: you need to run \`grenache-keygen' first." >&2
+  exit 1
+}
+
+exec {debug}>>/dev/null
+
+for service in "${@}"
+do
+  NODES=( $(@JQ@ -Mr '@tsv' < <( \
+    @CURL@ -qK "${HOME}/.grenache-cli/grenache-cli.conf" -A '@PACKAGE@/@PACKAGE_VERSION@' "http${TLS:+s}://${HOSTNAME}:${PORT}/lookup" < <( \
+      @JQ@ -cnM \
+        --arg 'data' "${service}" \
+        --arg 'rid' "$(@UUIDGEN@)" \
+        '{ "data": $data, "rid": $rid }' 2>&"${debug}" \
+    ) 2>&"${debug}" \
+  ) 2>&"${debug}") )
+
+  [[ ${#NODES[@]} -eq 0 ]] && { \
+    echo "${ME##*/}: warning: service ${service} not available." >&2
+    continue
+  }
+
+  [[ $((${LOOKUP_OPTIONS} & ${LOOKUP_ALL})) -ne 0 ]] \
+    && echo "${NODES[@]}" \
+    && EXIT_CODE=0
+
+  [[ $((${LOOKUP_OPTIONS} & ${LOOKUP_FIRST})) -ne 0 ]] \
+    && echo "${NODES[0]}" \
+    && EXIT_CODE=0
+
+  [[ $((${LOOKUP_OPTIONS} & ${LOOKUP_LAST})) -ne 0 ]] \
+    && echo "${NODES[-1]}" \
+    && EXIT_CODE=0
+
+  [[ ${LOOKUP_OPTIONS} -eq 0 || $((${LOOKUP_OPTIONS} & ${LOOKUP_RANDOM})) -ne 0 ]] \
+    && echo "${NODES[${RANDOM} % ${#NODES[@]}]}" \
+    && EXIT_CODE=0
+done
+
+exec {debug}>&-
+exit "${EXIT_CODE}"
