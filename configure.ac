@@ -15,9 +15,9 @@ dnl implied. See the License for the specific language governing permissions
 dnl and limitations under the License.
 
 AC_PREREQ(2.69)
-AC_INIT([grenache-cli], [0.4.0], [davide@bitfinex.com])
+AC_INIT([grenache-cli], [0.4.1], [davide@bitfinex.com])
 
-AC_SUBST([VERSION], [0.4.0])
+AC_SUBST([VERSION], [0.4.1])
 AC_SUBST([SB], [`$srcdir/shtool echo -n -e %B`])
 AC_SUBST([EB], [`$srcdir/shtool echo -n -e %b`])
 
@@ -36,7 +36,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([include/io.h])
 AC_CONFIG_HEADERS([config.h])
 
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([foreign no-dist-gzip dist-xz])
 
 AX_IS_RELEASE([git-directory])
@@ -123,7 +123,6 @@ AX_C99_INLINE
 AX_GCC_FUNC_ATTRIBUTE([always_inline])
 AX_COMPILER_FLAGS
 AX_GCC_ARCHFLAG
-AX_ENABLE_X86_FEATURES
 
 dnl --------------------------------------------------------------------
 dnl Checks for library functions.
@@ -142,6 +141,29 @@ dnl --------------------------------------------------------------------
 dnl Checks for user defined options.
 dnl --------------------------------------------------------------------
 AX_MSG_BOLD([Checking user defined options])
+
+AC_ARG_ENABLE([x86-features], AC_HELP_STRING([--enable-x86-features],
+  [Enable the x86 features check @<:@default=yes@:>@]),
+  [ax_cv_enable_x86_features="${enableval}"], [ax_cv_enable_x86_features='yes'])
+
+AC_MSG_CHECKING([whether you want to enable the x86 features check])
+
+if test "x${ax_cv_enable_x86_features}" = 'xyes'; then
+  AC_MSG_RESULT([yes])
+
+  case "${target}" in
+    i?86-* | amd64-* | x86_64-*)
+      AX_CHECK_X86_FEATURES
+      ;;
+    *)
+      ax_cv_enable_x86_features='no'
+      AC_MSG_WARN([the x86 features check cannot be performed])
+      ;;
+  esac
+else
+  AC_MSG_RESULT([no])
+  ax_cv_enable_x86_features='no'
+fi
 
 AX_DEFINE_DESCRIPTOR([SKEY_FILENO], [secret key], [6])
 AX_DEFINE_DESCRIPTOR([PKEY_FILENO], [public key], [7])
