@@ -19,7 +19,7 @@
 
 readonly ME="${BASH_SOURCE[0]}"
 readonly WHOAMI="$(@READLINK@ -snf "${ME}")"
-readonly ARGV=$(@GETOPT@ -o 'fh' --long 'force,help' -n "${ME##*/}" -- "$@") || exit 1
+readonly ARGV=$(@GETOPT@ -o 'fhV' --long 'force,help,version' -n "${ME##*/}" -- "$@") || exit 1
 
 OVERWRITE='no'
 
@@ -35,8 +35,23 @@ Usage:
         -f, --force             Overwrite existing keypair
 
         -h, --help              Show this message
+        -V, --version           Show version information
 
     The order of the specified options is not relevant.
+_EOF
+
+  exit 1
+}
+
+# Show program's version.
+function show_version {
+  @CAT@ <<_EOF
+@PACKAGE_NAME@ (@host_cpu@-@host_os@) @PACKAGE_VERSION@
+Copyright (C) 2017, 2018 Davide Scola <@PACKAGE_BUGREPORT@>
+This is free software; see the  source for copying conditions.  There is
+NO warranty;  not even for  MERCHANTABILITY or FITNESS FOR  A PARTICULAR
+PURPOSE.
+
 _EOF
 
   exit 1
@@ -50,6 +65,9 @@ while true; do
       ;;
     -h | --help )
       show_help; shift 1
+      ;;
+    -V | --version )
+      show_version; shift 1
       ;;
     -- ) shift; break ;;
     * ) break ;;
