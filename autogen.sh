@@ -19,11 +19,10 @@
 
 case "${1}" in
   '--reverse')
-    [[ -x configure ]] && ./configure --enable-maintainer-mode
     [[ -f Makefile ]] && make maintainer-clean
     rm -rf build-aux/
     rm -f {aclocal.m4,config.h.in,configure,shtool}
-    find . -type f -iregex '.*Makefile\.in$' -print0 | xargs -r0 rm -f
+    find . -type f -name 'Makefile.in' -print0 | xargs -r0 rm -f
   ;;
   * )
     autoreconf --force --install --include 'm4'
@@ -31,4 +30,3 @@ case "${1}" in
     [[ -d autom4te.cache ]] && rm -rf autom4te.cache
   ;;
 esac
-

@@ -17,9 +17,9 @@
 # and limitations under the License.                                       #
 ############################################################################
 
-ME="${BASH_SOURCE[0]}"
-WHOAMI="$(@READLINK@ -snf "${ME}")"
-ARGV=$(@GETOPT@ -o 'fh' --long 'force,help' -n "${ME##*/}" -- "$@") || exit 1
+readonly ME="${BASH_SOURCE[0]}"
+readonly WHOAMI="$(@READLINK@ -snf "${ME}")"
+readonly ARGV=$(@GETOPT@ -o 'fh' --long 'force,help' -n "${ME##*/}" -- "$@") || exit 1
 
 OVERWRITE='no'
 
@@ -58,42 +58,54 @@ done
 
 
 umask 0077
-exec {debug}>>/dev/null
+exec {stderr}>&2
+
+[[ x"${GRENACHE_CLI_DEBUG:+set}" != xset ]] && {
+  exec 2>/dev/null
+}
 
 [[ "x${OVERWRITE}" = 'xno' ]] && {
   set -o noclobber
 }
 
-@MKDIR@ "${HOME}/.grenache-cli" 2>&"${debug}" && {
-  @CAT@ > "${HOME}/.grenache-cli/grenache-cli.conf" 2>&"${debug}" <<_EOF
+@MKDIR@ "${HOME}/.grenache-cli" && {
+  @CAT@ > "${HOME}/.grenache-cli/grenache-cli.conf" <<_EOF
 #
 # General
 #
 silent
-compress
+no-buffer
+max-time 10
+connect-timeout 5
 
 #
 # Request
 #
-data "@-"
+compressed
+tcp-nodelay
+tcp-fastopen
+request POST
+data-binary = "@-"
 
 #
 # Headers
 #
-header = "Connection:close"
-header = "Accept:application/json"
-header = "Content-Type:application/json; charset=UTF-8"
+header = "Connection: close"
+header = "Accept: application/json"
+header = "Content-Type: application/json; charset=UTF-8"
 _EOF
 }
 
-${WHOAMI%/*}/grc-keygen 2>&"${debug}" \
+${WHOAMI%/*}/grc-keygen \
     @SKEY_FILENO@> "${HOME}/.grenache-cli/key" \
     @PKEY_FILENO@> "${HOME}/.grenache-cli/key.pub" || { \
-  echo "${ME##*/}: error: cannot create new keypair." >&2
+  echo "${ME##*/}: error: cannot create new keypair." >&"${stderr}"
+
+  exec {stderr}>&-
   exit 1
 }
 
 echo "${ME##*/}: keypair generated successfully."
 
-exec {debug}>&-
+exec {stderr}>&-
 exit 0

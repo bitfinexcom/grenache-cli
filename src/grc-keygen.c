@@ -75,7 +75,7 @@ int main(void) {
   }
 
 #ifdef HAVE_GETENTROPY
-  if (getentropy(seed, ED25519_SEED_SIZE) != ED25519_SEED_SIZE) {
+  if (getentropy(seed, ED25519_SEED_SIZE) != 0) {
 #else
   if (ed25519_create_seed(seed) != 0) {
 #endif
