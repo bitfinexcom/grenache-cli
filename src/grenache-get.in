@@ -17,12 +17,13 @@
 # and limitations under the License.                                       #
 ############################################################################
 
-ME="${BASH_SOURCE[0]}"
-WHOAMI="$(@READLINK@ -snf "${ME}")"
-ARGV=$(@GETOPT@ -o 'g:hip:trvw' --long 'grape:,help,id,port:,tls,raw,value,write' -n "${ME##*/}" -- "$@") || exit 1
+readonly ME="${BASH_SOURCE[0]}"
+readonly WHOAMI="$(@READLINK@ -snf "${ME}")"
+readonly ARGV=$(@GETOPT@ -o 'g:hip:trvVw' --long 'grape:,help,id,port:,tls,raw,value,version,write' -n "${ME##*/}" -- "$@") || exit 1
 
 TLS=''
 PORT=30002
+EXIT_CODE=1
 HOSTNAME='127.0.0.1'
 QUERY='select(.v) | .v'
 
@@ -44,8 +45,23 @@ Usage:
         -w, --write             Get the write token
 
         -h, --help              Show this message
+        -V, --version           Show version information
 
     The order of the specified options is not relevant.
+_EOF
+
+  exit 1
+}
+
+# Show program's version.
+function show_version {
+  @CAT@ <<_EOF
+@PACKAGE_NAME@ (@host_cpu@-@host_os@) @PACKAGE_VERSION@
+Copyright (C) 2017, 2018 Davide Scola <@PACKAGE_BUGREPORT@>
+This is free software; see the  source for copying conditions.  There is
+NO warranty;  not even for  MERCHANTABILITY or FITNESS FOR  A PARTICULAR
+PURPOSE.
+
 _EOF
 
   exit 1
@@ -95,6 +111,9 @@ while true; do
     -v | --value )
       QUERY='select(.v) | .v'; shift 1
       ;;
+    -V | --version )
+      show_version; shift 1
+      ;;
     -w | --write )
       QUERY='select(.token) | .token'; shift 1
       ;;
@@ -113,67 +132,70 @@ done
   exit 1
 }
 
-exec {debug}>>/dev/null
+exec {stderr}>&2
+
+[[ x"${GRENACHE_CLI_DEBUG:+set}" != xset ]] && {
+  exec 2>/dev/null
+}
 
 for hash in "${@}"
 do
   [[ "${hash}" =~ ^[a-fA-F0-9]{40}$ ]] || {
-    echo "${ME##*/}: error: invalid hash provided: ${hash}." >&2
-
-    exec {debug}>&-
-    exit 1
+    echo "${ME##*/}: warning: invalid hash provided: ${hash}." >&"${stderr}"
+    continue
   }
 
   JSON="$(@CURL@ -qK "${HOME}/.grenache-cli/grenache-cli.conf" -A '@PACKAGE@/@PACKAGE_VERSION@' "http${TLS:+s}://${HOSTNAME}:${PORT}/get" < <( \
     @JQ@ -cnM \
       --arg 'data' "${hash}" \
       --arg 'rid' "$(@UUIDGEN@)" \
-      '{ "data": $data, "rid": $rid }' 2>&"${debug}" \
-  ) 2>&"${debug}")"
+      '{ "data": $data, "rid": $rid }' \
+  ))"
 
-  @JQ@ -e 'has("k")' >/dev/null 2>&"${debug}" <<<"${JSON}" && {
+  [[ -z "${JSON}" ]] && {
+    echo "${ME##*/}: warning: hash ${hash} not found." >&"${stderr}"
+    continue
+  }
+
+  @JQ@ -e 'has("k")' >/dev/null <<<"${JSON}" && {
     CHALLENGE=''
 
-    @JQ@ -e 'has("salt")' >/dev/null 2>&"${debug}" <<<"${JSON}" && {
-      CHALLENGE+="$(@JQ@ -cMjr '"4:salt\(.salt | length):\(.salt)"' 2>&"${debug}" <<<"${JSON}")"
+    @JQ@ -e 'has("salt")' >/dev/null <<<"${JSON}" && {
+      CHALLENGE+="$(@JQ@ -j '"4:salt\(.salt | length):\(.salt)"' <<<"${JSON}")"
     }
 
-    CHALLENGE+="$(@JQ@ -cMjr '"3:seqi" + "\(.seq)" + "e1:v" + "\(.v | length):\(.v)"' 2>&"${debug}" <<<"${JSON}")"
+    CHALLENGE+="$(@JQ@ -j '"3:seqi" + "\(.seq)" + "e1:v" + "\(.v | length):\(.v)"' <<<"${JSON}")"
 
     ${WHOAMI%/*}/grc-verify "${CHALLENGE}" \
       @PKEY_FILENO@< <( \
-        @JQ@ -cMr 'select(.k) | .k' <<<"${JSON}" 2>&"${debug}"
+        @JQ@ -r 'select(.k) | .k' <<<"${JSON}"
       ) \
       @SIGN_FILENO@< <( \
-        @JQ@ -cMr 'select(.sig) | .sig' <<<"${JSON}" 2>&"${debug}"
-      ) >/dev/null 2>&"${debug}" || {
-      echo "${ME##*/}: error: cannot verify challenge buffer." >&2
-
-      exec {debug}>&-
-      exit 1
+        @JQ@ -r 'select(.sig) | .sig' <<<"${JSON}"
+      ) >/dev/null || {
+      echo "${ME##*/}: warning: cannot verify challenge buffer." >&"${stderr}"
+      continue
     }
 
     CHECK="$(@SHA1SUM@ < <( \
       printf '%s' \
-        "$(@XXD@ -r -p < <( @JQ@ -cMr 'select(.k) | .k' <<<"${JSON}" 2>&"${debug}" ))" \
-        "$(@JQ@ -cMr 'select(.salt) | .salt' <<<"${JSON}" 2>&"${debug}")"
-      ) 2>&"${debug}" \
-    ) 2>&"${debug}")"
+        "$(@XXD@ -r -p < <( @JQ@ -r 'select(.k) | .k' <<<"${JSON}" ))" \
+        "$(@JQ@ -r 'select(.salt) | .salt' <<<"${JSON}")"
+    ))"
   } || {
     CHECK="$(@SHA1SUM@ < <( \
-      @JQ@ -cMjr 'select(.v) | "\(.v | length):\(.v)"' <<<"${JSON}" 2>&"${debug}"
-    ) 2>&"${debug}")"
+      @JQ@ -j 'select(.v) | "\(.v | length):\(.v)"' <<<"${JSON}"
+    ))"
   }
 
   [[ "x${hash}" = "x${CHECK%% *}" ]] || {
-    echo "${ME##*/}: error: unexpected value." >&2
-
-    exec {debug}>&-
-    exit 1
+    echo "${ME##*/}: warning: unexpected value." >&"${stderr}"
+    continue
   }
 
-  @JQ@ -cMr "${QUERY}" <<<"${JSON}" 2>&"${debug}"
+  @JQ@ -r "${QUERY}" <<<"${JSON}" \
+    && EXIT_CODE=0
 done
 
-exec {debug}>&-
-exit 0
+exec {stderr}>&-
+exit "${EXIT_CODE}"

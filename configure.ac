@@ -15,9 +15,9 @@ dnl implied. See the License for the specific language governing permissions
 dnl and limitations under the License.
 
 AC_PREREQ(2.69)
-AC_INIT([grenache-cli], [0.4.1], [davide@bitfinex.com])
+AC_INIT([grenache-cli], [0.5.0], [davide@bitfinex.com])
 
-AC_SUBST([VERSION], [0.4.1])
+AC_SUBST([VERSION], [0.5.0])
 AC_SUBST([SB], [`$srcdir/shtool echo -n -e %B`])
 AC_SUBST([EB], [`$srcdir/shtool echo -n -e %b`])
 
@@ -36,7 +36,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_SRCDIR([include/io.h])
 AC_CONFIG_HEADERS([config.h])
 
-AC_CANONICAL_TARGET
+AC_CANONICAL_HOST
 AM_INIT_AUTOMAKE([foreign no-dist-gzip dist-xz])
 
 AX_IS_RELEASE([git-directory])
@@ -240,5 +240,5 @@ AC_MSG_RESULT
 AC_MSG_RESULT
 AC_MSG_RESULT([==================================================])
 AX_MSG_OPTION([The binary will be optimized using], [${ax_cv_gcc_archflag}])
-AX_MSG_OPTION([This version was configured for], [${target}])
+AX_MSG_OPTION([This version was configured for], [${host_cpu}-${host_os}])
 AC_MSG_RESULT

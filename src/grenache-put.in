@@ -17,9 +17,9 @@
 # and limitations under the License.                                       #
 ############################################################################
 
-ME="${BASH_SOURCE[0]}"
-WHOAMI="$(@READLINK@ -snf "${ME}")"
-ARGV=$(@GETOPT@ -o 'c:g:hm:n:p:s:t' --long 'cas:,grape:,help,mutable,number:,port:,salt:,tls' -n "${ME##*/}" -- "$@") || exit 1
+readonly ME="${BASH_SOURCE[0]}"
+readonly WHOAMI="$(@READLINK@ -snf "${ME}")"
+readonly ARGV=$(@GETOPT@ -o 'c:g:hm:n:p:s:tV' --long 'cas:,grape:,help,mutable,number:,port:,salt:,tls,version' -n "${ME##*/}" -- "$@") || exit 1
 
 TLS=''
 CAS=''
@@ -47,8 +47,23 @@ Usage:
         -t, --tls               Enable TLS
 
         -h, --help              Show this message
+        -V, --version           Show version information
 
     The order of the specified options is not relevant.
+_EOF
+
+  exit 1
+}
+
+# Show program's version.
+function show_version {
+  @CAT@ <<_EOF
+@PACKAGE_NAME@ (@host_cpu@-@host_os@) @PACKAGE_VERSION@
+Copyright (C) 2017, 2018 Davide Scola <@PACKAGE_BUGREPORT@>
+This is free software; see the  source for copying conditions.  There is
+NO warranty;  not even for  MERCHANTABILITY or FITNESS FOR  A PARTICULAR
+PURPOSE.
+
 _EOF
 
   exit 1
@@ -131,6 +146,9 @@ while true; do
     -t | --tls )
       TLS='yes'; shift 1
       ;;
+    -V | --version )
+      show_version; shift 1
+      ;;
     -- ) shift; break ;;
     * ) break ;;
   esac
@@ -146,12 +164,15 @@ done
   exit 1
 }
 
-exec {debug}>>/dev/null
-
 VALUE="${*}"
+exec {stderr}>&2
+
+[[ x"${GRENACHE_CLI_DEBUG:+set}" != xset ]] && {
+  exec 2>/dev/null
+}
 
 [[ "${#VALUE}" -gt 1000 ]] && {
-  echo "${ME##*/}: warning: value is too big and it will be truncated." >&2
+  echo "${ME##*/}: warning: value is too big and it will be truncated." >&"${stderr}"
   VALUE="${VALUE:0:1000}"
 }
 
@@ -166,7 +187,7 @@ ARGUMENTS=(
   PROPERTIES+=', "seq": $seq | tonumber, "k": $k'
   ARGUMENTS+=(
     --arg 'seq' "${SEQUENCE}"
-    --arg 'k' "$(@CAT@ ${HOME}/.grenache-cli/key.pub 2>&"${debug}")"
+    --arg 'k' "$(@CAT@ ${HOME}/.grenache-cli/key.pub)"
   )
 
   [[ "x${SALT}" != 'x' ]] && {
@@ -183,13 +204,12 @@ ARGUMENTS=(
   SIGNATURE="$(${WHOAMI%/*}/grc-sign "${CHALLENGE}" \
     @SKEY_FILENO@< "${HOME}/.grenache-cli/key" \
     @PKEY_FILENO@< "${HOME}/.grenache-cli/key.pub" \
-      2>&"${debug}"
   )"
 
   [[ "x${SIGNATURE}" = 'x' ]] && {
-    echo "${ME##*/}: error: cannot sign challenge buffer." >&2
+    echo "${ME##*/}: error: cannot sign challenge buffer." >&"${stderr}"
 
-    exec {debug}>&-
+    exec {stderr}>&-
     exit 1
   }
 
@@ -206,40 +226,40 @@ ARGUMENTS=(
   }
 }
 
-HASH="$(@JQ@ -cMr '.' < <(
+HASH="$(@JQ@ -r '.' < <(
   @CURL@ -qK "${HOME}/.grenache-cli/grenache-cli.conf" -A '@PACKAGE@/@PACKAGE_VERSION@' "http${TLS:+s}://${HOSTNAME}:${PORT}/put" < <( \
     @JQ@ -cnM \
       "${ARGUMENTS[@]}" \
       --arg 'rid' "$(@UUIDGEN@)" \
-      "{ "data": { ${PROPERTIES} }, "rid": \$rid }" 2>&"${debug}" \
-  ) 2>&"${debug}" \
-) 2>&"${debug}")"
+      "{ \"data\": { ${PROPERTIES} }, \"rid\": \$rid }" \
+  ) \
+))"
 
 [[ "${HASH}" =~ ^[a-fA-F0-9]{40}$ ]] || {
-  echo "${ME##*/}: error: ${HASH:-empty response received from Grape}." >&2
+  echo "${ME##*/}: error: ${HASH:-empty response received from Grape}." >&"${stderr}"
 
-  exec {debug}>&-
+  exec {stderr}>&-
   exit 1
 }
 
 [[ "x${MUTABLE}" == 'xyes' ]] && {
   CHECK="$(@SHA1SUM@ < <( \
-    printf '%s%s' "$(@XXD@ -r -p < <(@CAT@ ${HOME}/.grenache-cli/key.pub 2>&"${debug}") 2>&"${debug}")" "${SALT}" 2>&"${debug}" \
-  ) 2>&"${debug}")"
+    printf '%s%s' "$(@XXD@ -r -p < <(@CAT@ ${HOME}/.grenache-cli/key.pub))" "${SALT}" \
+  ))"
 } || {
   CHECK="$(@SHA1SUM@ < <( \
-    printf '%d:%s' "${#VALUE}" "${VALUE}" 2>&"${debug}" \
-  ) 2>&"${debug}")"
+    printf '%d:%s' "${#VALUE}" "${VALUE}" \
+  ))"
 }
 
 [[ "x${HASH}" = "x${CHECK%% *}" ]] || {
-  echo "${ME##*/}: error: unexpected hash value." >&2
+  echo "${ME##*/}: error: unexpected hash value." >&"${stderr}"
 
-  exec {debug}>&-
+  exec {stderr}>&-
   exit 1
 }
 
 echo "${HASH}"
 
-exec {debug}>&-
+exec {stderr}>&-
 exit 0
