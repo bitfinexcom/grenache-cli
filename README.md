@@ -1,6 +1,13 @@
 # Grenache CLI
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![license](https://img.shields.io/github/license/bitfinexcom/grenache-cli.svg)
+![GitHub (pre-)release](https://img.shields.io/github/release/bitfinexcom/grenache-cli/all.svg)
+![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/bitfinexcom/grenache-cli.svg)
+![GitHub last commit](https://img.shields.io/github/last-commit/bitfinexcom/grenache-cli.svg)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/bitfinexcom/grenache-cli.svg)
+![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
+
+<img align="right" width="15%" src="https://github.com/bitfinexcom/grenache/raw/master/logos/logo-square.png" />
 
  * [Introduction](#introduction)
  * [Prerequisites](#prerequisites)
@@ -17,7 +24,7 @@
 
 ## Introduction
 
-The **Grenache** **C**ommand **L**ine **I**nterface is a set of tools to use the [grenache-grape](https://github.com/bitfinexcom/grenache-grape) suite directly from your command line. Using this set of tools you can create fancy scripts that communicate directly with the DHT.
+The [**Grenache**](https://github.com/bitfinexcom/grenache) **C**ommand **L**ine **I**nterface is a set of tools to use the [grenache-grape](https://github.com/bitfinexcom/grenache-grape) suite directly from your command line. Using this set of tools you can create fancy scripts that communicate directly with the DHT.
 
 
 ## Prerequisites
@@ -135,7 +142,38 @@ to retrieve the complete options list.
 
 ## Announce services
 
-Coming soon...
+The `grenache-announce` command announces the given services in order to be stored in the DHT. To announce the [rest:net:util](https://github.com/bitfinexcom/bfx-util-net-js) service on port _31337_, simply run something like this:
+
+```bash
+grenache-announce 'rest:net:util,31337'
+```
+
+If no services are specified, `grenache-announce` enters the _streaming_ mode, reading the standard input. All comments (marked by a **#** or **;**) and blank lines are ignored. For example, a list of services can be announced using something like this:
+
+```bash
+grenache-announce <services.lst
+```
+
+An _announce service_ can also be created using a named pipe:
+
+```bash
+mkfifo --mode=0622 /run/grape/announce && \
+  grenache-announce <>/run/grape/announce
+```
+
+Storing a service in the DHT now simply requires something like this:
+
+```bash
+echo 'rest:net:util,31337' >/run/grape/announce
+```
+
+A JSON stream can also be required (perhaps to implement a network service with something like [tcpserver](https://cr.yp.to/ucspi-tcp/tcpserver.html)) using the `-j` switch or its long form `--json`. The JSON document must contain a `data` array in which the _first position_ is the service name while the _second_ is the port number. Another useful option is `-d` or `--delimiter` which allows you to set the delimiter string between the _service name_ and _port number_ when not using JSON mode. See
+
+```bash
+grenache-announce --help
+```
+
+to retrieve the complete options list.
 
 
 ## Maintainers

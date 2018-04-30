@@ -15,9 +15,9 @@ dnl implied. See the License for the specific language governing permissions
 dnl and limitations under the License.
 
 AC_PREREQ(2.69)
-AC_INIT([grenache-cli], [0.5.0], [davide@bitfinex.com])
+AC_INIT([grenache-cli], [0.6.0], [davide@bitfinex.com])
 
-AC_SUBST([VERSION], [0.5.0])
+AC_SUBST([VERSION], [0.6.0])
 AC_SUBST([SB], [`$srcdir/shtool echo -n -e %B`])
 AC_SUBST([EB], [`$srcdir/shtool echo -n -e %b`])
 
@@ -151,7 +151,7 @@ AC_MSG_CHECKING([whether you want to enable the x86 features check])
 if test "x${ax_cv_enable_x86_features}" = 'xyes'; then
   AC_MSG_RESULT([yes])
 
-  case "${target}" in
+  case "${host}" in
     i?86-* | amd64-* | x86_64-*)
       AX_CHECK_X86_FEATURES
       ;;
@@ -187,6 +187,7 @@ AC_CONFIG_FILES([ \
   src/grenache-get \
   src/grenache-keygen \
   src/grenache-lookup \
+  src/grenache-announce \
   tests/Makefile \
   tests/sign-test-vector-1.sh \
   tests/sign-test-vector-2.sh \
