@@ -56,7 +56,7 @@ _EOF
 # Show program's version.
 function show_version {
   @CAT@ <<_EOF
-@PACKAGE_NAME@ (@host_cpu@-@host_os@) @PACKAGE_VERSION@
+${WHOAMI##*/} (@host_cpu@-@host_os@) @PACKAGE_NAME@/@PACKAGE_VERSION@
 Copyright (C) 2017, 2018 Davide Scola <@PACKAGE_BUGREPORT@>
 This is free software; see the  source for copying conditions.  There is
 NO warranty;  not even for  MERCHANTABILITY or FITNESS FOR  A PARTICULAR

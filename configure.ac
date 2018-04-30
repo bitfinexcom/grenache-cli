@@ -151,7 +151,7 @@ AC_MSG_CHECKING([whether you want to enable the x86 features check])
 if test "x${ax_cv_enable_x86_features}" = 'xyes'; then
   AC_MSG_RESULT([yes])
 
-  case "${target}" in
+  case "${host}" in
     i?86-* | amd64-* | x86_64-*)
       AX_CHECK_X86_FEATURES
       ;;

@@ -1,6 +1,13 @@
 # Grenache CLI
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![license](https://img.shields.io/github/license/bitfinexcom/grenache-cli.svg)
+![GitHub (pre-)release](https://img.shields.io/github/release/bitfinexcom/grenache-cli/all.svg)
+![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/bitfinexcom/grenache-cli.svg)
+![GitHub last commit](https://img.shields.io/github/last-commit/bitfinexcom/grenache-cli.svg)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/bitfinexcom/grenache-cli.svg)
+![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
+
+<img align="right" width="15%" src="https://github.com/bitfinexcom/grenache/raw/master/logos/logo-square.png" />
 
  * [Introduction](#introduction)
  * [Prerequisites](#prerequisites)
@@ -17,7 +24,7 @@
 
 ## Introduction
 
-The **Grenache** **C**ommand **L**ine **I**nterface is a set of tools to use the [grenache-grape](https://github.com/bitfinexcom/grenache-grape) suite directly from your command line. Using this set of tools you can create fancy scripts that communicate directly with the DHT.
+The [**Grenache**](https://github.com/bitfinexcom/grenache) **C**ommand **L**ine **I**nterface is a set of tools to use the [grenache-grape](https://github.com/bitfinexcom/grenache-grape) suite directly from your command line. Using this set of tools you can create fancy scripts that communicate directly with the DHT.
 
 
 ## Prerequisites
