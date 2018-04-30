@@ -30,7 +30,8 @@ bin_SCRIPTS = \
 grenache-put \
 grenache-get \
 grenache-keygen \
-grenache-lookup
+grenache-lookup \
+grenache-announce
 
 noinst_LTLIBRARIES = \
 libed25519.la \

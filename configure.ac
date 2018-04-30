@@ -187,6 +187,7 @@ AC_CONFIG_FILES([ \
   src/grenache-get \
   src/grenache-keygen \
   src/grenache-lookup \
+  src/grenache-announce \
   tests/Makefile \
   tests/sign-test-vector-1.sh \
   tests/sign-test-vector-2.sh \
