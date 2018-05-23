@@ -36,7 +36,7 @@
  * @return unsigned char
  *   The decimal value or 0 in case of error.
  */
-INLINE ALWAYS_INLINE unsigned char ord(char ch) {
+static INLINE ALWAYS_INLINE unsigned char ord(char ch) {
   return (ch >= L'0' && ch <= L'9') ? (ch - L'0') : (
     (ch >= L'a' && ch <= L'f') ? (ch - L'a' + 10) : 0
   );
@@ -51,7 +51,7 @@ INLINE ALWAYS_INLINE unsigned char ord(char ch) {
  * @return char
  *   The hexadecimal character (lowercase).
  */
-INLINE ALWAYS_INLINE char ch(unsigned char ord) {
+static INLINE ALWAYS_INLINE char ch(unsigned char ord) {
   return ((ord & 0x0F) >= 0 && (ord & 0x0F) <= 9) ? ((ord & 0x0F) + L'0') : (
     (ord & 0x0F) + L'a' - 10
   );

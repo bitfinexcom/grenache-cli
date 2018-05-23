@@ -5,7 +5,7 @@
 ![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/bitfinexcom/grenache-cli.svg)
 ![GitHub last commit](https://img.shields.io/github/last-commit/bitfinexcom/grenache-cli.svg)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/bitfinexcom/grenache-cli.svg)
-![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
+![stability-unstable](https://img.shields.io/badge/stability-unstable-yellow.svg)
 
 <img align="right" width="15%" src="https://github.com/bitfinexcom/grenache/raw/master/logos/logo-square.png" />
 
