@@ -19,11 +19,11 @@
 
 readonly ME="${BASH_SOURCE[0]}"
 readonly WHOAMI="$(@READLINK@ -snf "${ME}")"
-readonly ARGV=$(@GETOPT@ -o 'g:hip:trvVw' --long 'grape:,help,id,port:,tls,raw,value,version,write' -n "${ME##*/}" -- "$@") || exit 1
+readonly ARGV=$(@GETOPT@ -o 'g:hip:trs:vVw' --long 'grape:,help,id,port:,tls,raw,salt:,value,version,write' -n "${ME##*/}" -- "$@") || exit 1
 
 TLS=''
+SALT=''
 PORT=30002
-EXIT_CODE=1
 HOSTNAME='127.0.0.1'
 QUERY='select(.v) | .v'
 
@@ -32,7 +32,7 @@ QUERY='select(.v) | .v'
 function show_help {
   @CAT@ <<_EOF
 Usage:
-    ${ME##*/} [OPTIONS] <value>... -- send a GET request to the DHT
+    ${ME##*/} [OPTIONS] <value> -- send a GET request to the DHT
 
     Options:
 
@@ -41,6 +41,7 @@ Usage:
         -p, --port              Set the Grape port number
         -t, --tls               Enable TLS
         -r, --raw               Get the raw response message
+        -s, --salt              Set salt for this request
         -v, --value             Get the stored value
         -w, --write             Get the write token
 
@@ -108,6 +109,19 @@ while true; do
     -r | --raw )
       QUERY='select(.)'; shift 1
       ;;
+    -s | --salt )
+      [[ -z "${2}" ]] && {
+        echo "${ME##*/}: error: empty salt string." >&2
+        exit 1
+      }
+
+      [[ "${#2}" -gt 64 ]] && {
+        echo "${ME##*/}: error: salt is too big." >&2
+        exit 1
+      }
+
+      SALT="${2}"; shift 2
+      ;;
     -v | --value )
       QUERY='select(.v) | .v'; shift 1
       ;;
@@ -132,70 +146,87 @@ done
   exit 1
 }
 
+HASH="${1}"
 exec {stderr}>&2
 
 [[ x"${GRENACHE_CLI_DEBUG:+set}" != xset ]] && {
   exec 2>/dev/null
 }
 
-for hash in "${@}"
-do
-  [[ "${hash}" =~ ^[a-fA-F0-9]{40}$ ]] || {
-    echo "${ME##*/}: warning: invalid hash provided: ${hash}." >&"${stderr}"
-    continue
-  }
+[[ "${HASH}" =~ ^[a-fA-F0-9]{40}$ ]] || {
+  echo "${ME##*/}: error: invalid hash provided: ${HASH}." >&"${stderr}"
 
-  JSON="$(@CURL@ -qK "${HOME}/.grenache-cli/grenache-cli.conf" -A '@PACKAGE@/@PACKAGE_VERSION@' "http${TLS:+s}://${HOSTNAME}:${PORT}/get" < <( \
-    @JQ@ -cnM \
-      --arg 'data' "${hash}" \
-      --arg 'rid' "$(@UUIDGEN@)" \
-      '{ "data": $data, "rid": $rid }' \
-  ))"
+  exec {stderr}>&-
+  exit 1
+}
 
-  [[ -z "${JSON}" ]] && {
-    echo "${ME##*/}: warning: hash ${hash} not found." >&"${stderr}"
-    continue
-  }
+JSON="$(@CURL@ -qK "${HOME}/.grenache-cli/grenache-cli.conf" -A '@PACKAGE@/@PACKAGE_VERSION@' "http${TLS:+s}://${HOSTNAME}:${PORT}/get" < <( \
+  @JQ@ -cnM \
+    --arg 'hash' "${HASH}" \
+    --arg 'salt' "${SALT:-}" \
+    --arg 'rid' "$(@UUIDGEN@)" \
+    '{ "data": { "hash": $hash, "salt": $salt }, "rid": $rid }'
+))"
 
-  @JQ@ -e 'has("k")' >/dev/null <<<"${JSON}" && {
-    CHALLENGE=''
+[[ -z "${JSON}" ]] && {
+  echo "${ME##*/}: error: hash ${HASH} not found." >&"${stderr}"
 
+  exec {stderr}>&-
+  exit 1
+}
+
+@JQ@ -e 'has("k")' >/dev/null <<<"${JSON}" && {
+  CHALLENGE=''
+
+  [[ -z "${SALT}" ]] || {
     @JQ@ -e 'has("salt")' >/dev/null <<<"${JSON}" && {
-      CHALLENGE+="$(@JQ@ -j '"4:salt\(.salt | length):\(.salt)"' <<<"${JSON}")"
+      GRENACHE_SALT="$(@JQ@ -r '.salt' <<<"${JSON}")"
+
+      [[ "${GRENACHE_SALT}" = "${SALT}" ]] || {
+        echo "${ME##*/}: error: salt mismatch." >&"${stderr}"
+
+        exec {stderr}>&-
+        exit 1
+      }
     }
 
-    CHALLENGE+="$(@JQ@ -j '"3:seqi" + "\(.seq)" + "e1:v" + "\(.v | length):\(.v)"' <<<"${JSON}")"
-
-    ${WHOAMI%/*}/grc-verify "${CHALLENGE}" \
-      @PKEY_FILENO@< <( \
-        @JQ@ -r 'select(.k) | .k' <<<"${JSON}"
-      ) \
-      @SIGN_FILENO@< <( \
-        @JQ@ -r 'select(.sig) | .sig' <<<"${JSON}"
-      ) >/dev/null || {
-      echo "${ME##*/}: warning: cannot verify challenge buffer." >&"${stderr}"
-      continue
-    }
-
-    CHECK="$(@SHA1SUM@ < <( \
-      printf '%s' \
-        "$(@XXD@ -r -p < <( @JQ@ -r 'select(.k) | .k' <<<"${JSON}" ))" \
-        "$(@JQ@ -r 'select(.salt) | .salt' <<<"${JSON}")"
-    ))"
-  } || {
-    CHECK="$(@SHA1SUM@ < <( \
-      @JQ@ -j 'select(.v) | "\(.v | length):\(.v)"' <<<"${JSON}"
-    ))"
+    CHALLENGE+="4:salt${#SALT}:${SALT}"
   }
 
-  [[ "x${hash}" = "x${CHECK%% *}" ]] || {
-    echo "${ME##*/}: warning: unexpected value." >&"${stderr}"
-    continue
+  CHALLENGE+="$(@JQ@ -j '"3:seqi" + "\(.seq)" + "e1:v" + "\(.v | length):\(.v)"' <<<"${JSON}")"
+
+  ${WHOAMI%/*}/grc-verify "${CHALLENGE}" \
+    @PKEY_FILENO@< <( \
+      @JQ@ -r 'select(.k) | .k' <<<"${JSON}"
+    ) \
+    @SIGN_FILENO@< <( \
+      @JQ@ -r 'select(.sig) | .sig' <<<"${JSON}"
+    ) >/dev/null || {
+    echo "${ME##*/}: error: cannot verify challenge buffer." >&"${stderr}"
+
+    exec {stderr}>&-
+    exit 1
   }
 
-  @JQ@ -r "${QUERY}" <<<"${JSON}" \
-    && EXIT_CODE=0
-done
+  CHECK="$(@SHA1SUM@ < <( \
+    printf '%s' \
+      "$(@XXD@ -r -p < <( @JQ@ -r 'select(.k) | .k' <<<"${JSON}" ))" \
+      "${SALT:-}"
+  ))"
+} || {
+  CHECK="$(@SHA1SUM@ < <( \
+    @JQ@ -j 'select(.v) | "\(.v | length):\(.v)"' <<<"${JSON}"
+  ))"
+}
+
+[[ "x${HASH}" = "x${CHECK%% *}" ]] || {
+  echo "${ME##*/}: error: unexpected value." >&"${stderr}"
+
+  exec {stderr}>&-
+  exit 1
+}
+
+@JQ@ -cMr "${QUERY}" <<<"${JSON}"
 
 exec {stderr}>&-
-exit "${EXIT_CODE}"
+exit 0

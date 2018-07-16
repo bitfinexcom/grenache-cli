@@ -91,7 +91,7 @@ to retrieve the complete options list.
 
 ## Retreive items from the DHT
 
-The `grenache-get` command reads a data record from the DHT (see [BEP 44](http://bittorrent.org/beps/bep_0044.html) for more information). There is no differences in retreiving a _mutable_ or an _immutable_ item; on both cases the key returned by the *PUT* request must be provided. In any case, `grenache-get` validates the payload it receive; this will ensure that the _key_ provided really match the payload and, in case of a _mutable_ item, that the signature is correct. This will protect you from evil nodes on the network. To read an item from the DHT simply run something like this:
+The `grenache-get` command reads a data record from the DHT (see [BEP 44](http://bittorrent.org/beps/bep_0044.html) for more information). There is no differences in retreiving a _mutable_ or an _immutable_ item; in both cases the key returned by the *PUT* request must be provided. Furthermore, starting from version _[0.9.6](https://github.com/bitfinexcom/grenache-grape/commit/efbfc11)_ of [grenache-grape](https://github.com/bitfinexcom/grenache-grape), the _salt_ specified during the *PUT* operation must be provided if used. In any case, `grenache-get` validates the payload it receive; this will ensure that the _key_ provided really match the payload and, in case of a _mutable_ item, that the signature is correct. This will protect you from evil nodes on the network. To read an item from the DHT simply run something like this:
 
 ```bash
 grenache-get '81c2a8157780989af9a16661324fafbd7803877d'
@@ -101,7 +101,7 @@ For example, you can format the previously stored available memory amount using 
 
 ```bash
 numfmt --from=auto --to=iec-i < <(
-   grenache-get '81c2a8157780989af9a16661324fafbd7803877d'
+   grenache-get --salt 'sys:mem:available' '633def0b4349e2ed5bfbe0a5a1bb34e622f8c20d'
 )
 ```
 
