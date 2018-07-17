@@ -42,4 +42,5 @@ grenache-announce
 #
 # Distribution
 #
+*.1
 *.tar.*

@@ -15,9 +15,9 @@ dnl implied. See the License for the specific language governing permissions
 dnl and limitations under the License.
 
 AC_PREREQ(2.69)
-AC_INIT([grenache-cli], [0.6.1], [davide@bitfinex.com])
+AC_INIT([grenache-cli], [0.7.0], [davide@bitfinex.com])
 
-AC_SUBST([VERSION], [0.6.1])
+AC_SUBST([VERSION], [0.7.0])
 AC_SUBST([SB], [`$srcdir/shtool echo -n -e %B`])
 AC_SUBST([EB], [`$srcdir/shtool echo -n -e %b`])
 
@@ -58,6 +58,7 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 AC_PROG_AWK
+AM_MISSING_PROG([HELP2MAN], [help2man])
 
 AX_PROG_JQ
 AX_PROG_CAT
@@ -180,6 +181,7 @@ AX_MSG_BOLD([Writing output files])
 
 AC_CONFIG_FILES([ \
   Makefile \
+  doc/Makefile \
   m4/Makefile \
   include/Makefile \
   src/Makefile \

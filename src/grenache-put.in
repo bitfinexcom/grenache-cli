@@ -33,23 +33,27 @@ SEQUENCE="$(@DATE@ '+%s%6N')"
 # Show program's help.
 function show_help {
   @CAT@ <<_EOF
-Usage:
-    ${ME##*/} [OPTIONS] <value>... -- send a PUT request to the DHT
+${ME##*/} sends a PUT request to the DHT
 
-    Options:
+Usage: ${ME##*/} [OPTION]... VALUE
 
-        -c, --cas               Set the compare and swap number
-        -g, --grape             Set the Grape hostname
-        -m, --mutable           Send a mutable PUT request
-        -n, --number            Set the sequence number of this PUT request
-        -p, --port              Set the Grape port number
-        -s, --salt              Set salt for this request
-        -t, --tls               Enable TLS
+Options:
+   -c, --cas                  Set the compare and swap number
+   -g, --grape                Set the Grape hostname
+   -m, --mutable              Send a mutable PUT request
+   -n, --number               Set the sequence number of this PUT request
+   -p, --port                 Set the Grape port number
+   -s, --salt                 Set salt for this request
+   -t, --tls                  Enable TLS
 
-        -h, --help              Show this message
-        -V, --version           Show version information
+   -h, --help                 Show help message
+   -V, --version              Show version information
 
-    The order of the specified options is not relevant.
+Examples:
+    ${ME##*/} 'foo'        Store the value foo to the DHT
+    ${ME##*/} -m 'foo'     The same thing, but as mutable value
+
+Report bugs to <@PACKAGE_BUGREPORT@>.
 _EOF
 
   exit 1
@@ -58,12 +62,14 @@ _EOF
 # Show program's version.
 function show_version {
   @CAT@ <<_EOF
-${WHOAMI##*/} (@host_cpu@-@host_os@) @PACKAGE_NAME@/@PACKAGE_VERSION@
+${WHOAMI##*/} (@PACKAGE_NAME@) @PACKAGE_VERSION@ for @host_cpu@-@host_os@
+
 Copyright (C) 2017, 2018 Davide Scola <@PACKAGE_BUGREPORT@>
 This is free software; see the  source for copying conditions.  There is
 NO warranty;  not even for  MERCHANTABILITY or FITNESS FOR  A PARTICULAR
 PURPOSE.
 
+Written by Davide Scola.
 _EOF
 
   exit 1
