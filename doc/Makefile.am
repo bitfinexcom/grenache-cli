@@ -16,35 +16,17 @@
 # and limitations under the License.                                       #
 ############################################################################
 
-ACLOCAL_AMFLAGS = -I m4
-
-GRC_SUBDIRS = . doc src tests
-
-SUBDIRS = $(GRC_SUBDIRS)
-DIST_SUBDIRS = $(GRC_SUBDIRS) include m4
-
-@GENERATE_CHANGELOG_RULES@
-
-EXTRA_DIST = \
-LICENSE \
-README.md \
-autogen.sh \
-shtool
-
-DISTCLEANFILES = \
-config.h.in~
+dist_man1_MANS = \
+grenache-get.1 \
+grenache-put.1 \
+grenache-keygen.1 \
+grenache-lookup.1 \
+grenache-announce.1
 
 MAINTAINERCLEANFILES = \
-$(DISTCLEANFILES) \
-README
+$(dist_man1_MANS)
 
-dist-hook: dist-ChangeLog
-	cp -fpR $(top_srcdir)/ed25519 $(distdir)
-	$(RM) -rf $(distdir)/ed25519/.git
-
-maintainer-clean-local: maintainer-clean-local-check
-
-maintainer-clean-local-check:
-	-$(RM) $(distdir).tar.xz
-
-.PHONY: maintainer-clean-local-check
+%.1: $(top_srcdir)/src/%.in $(top_srcdir)/doc/Makefile.am
+	$(HELP2MAN) --no-info --output=$@ --version-string="$(PACKAGE_VERSION)" \
+		--name="manual page for $(notdir $(basename $<)) ($(PACKAGE_NAME)) $(PACKAGE_VERSION) on $(host_cpu)-$(host_os)" \
+		"${SHELL} $(basename $<)$(EXEEXT)"

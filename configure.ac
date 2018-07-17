@@ -58,6 +58,7 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 AC_PROG_AWK
+AM_MISSING_PROG([HELP2MAN], [help2man])
 
 AX_PROG_JQ
 AX_PROG_CAT
@@ -180,6 +181,7 @@ AX_MSG_BOLD([Writing output files])
 
 AC_CONFIG_FILES([ \
   Makefile \
+  doc/Makefile \
   m4/Makefile \
   include/Makefile \
   src/Makefile \
