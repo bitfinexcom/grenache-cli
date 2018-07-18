@@ -15,9 +15,9 @@ dnl implied. See the License for the specific language governing permissions
 dnl and limitations under the License.
 
 AC_PREREQ(2.69)
-AC_INIT([grenache-cli], [0.7.0], [davide@bitfinex.com])
+AC_INIT([grenache-cli], [0.7.1], [davide@bitfinex.com])
 
-AC_SUBST([VERSION], [0.7.0])
+AC_SUBST([VERSION], [0.7.1])
 AC_SUBST([SB], [`$srcdir/shtool echo -n -e %B`])
 AC_SUBST([EB], [`$srcdir/shtool echo -n -e %b`])
 
@@ -38,6 +38,7 @@ AC_CONFIG_HEADERS([config.h])
 
 AC_CANONICAL_HOST
 AM_INIT_AUTOMAKE([foreign no-dist-gzip dist-xz])
+AM_EXTRA_RECURSIVE_TARGETS([install-man])
 
 AX_IS_RELEASE([git-directory])
 AX_CHECK_ENABLE_DEBUG
