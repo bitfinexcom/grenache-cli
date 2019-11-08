@@ -43,7 +43,6 @@ Options:
     -r, --raw                  Get the raw response message
     -s, --salt                 Set salt for this request
     -v, --value                Get the stored value
-    -w, --write                Get the write token
 
     -h, --help                 Show help message
     -V, --version              Show version information
@@ -133,9 +132,6 @@ while true; do
       ;;
     -V | --version )
       show_version; shift 1
-      ;;
-    -w | --write )
-      QUERY='select(.token) | .token'; shift 1
       ;;
     -- ) shift; break ;;
     * ) break ;;
