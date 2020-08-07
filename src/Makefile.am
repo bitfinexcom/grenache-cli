@@ -39,23 +39,23 @@ libcommon.la
 
 
 libed25519_la_SOURCES = \
-$(top_srcdir)/ed25519/src/add_scalar.c \
-$(top_srcdir)/ed25519/src/ed25519.h \
-$(top_srcdir)/ed25519/src/fe.h \
-$(top_srcdir)/ed25519/src/fe.c \
-$(top_srcdir)/ed25519/src/fixedint.h \
-$(top_srcdir)/ed25519/src/ge.h \
-$(top_srcdir)/ed25519/src/ge.c \
-$(top_srcdir)/ed25519/src/key_exchange.c \
-$(top_srcdir)/ed25519/src/keypair.c \
-$(top_srcdir)/ed25519/src/precomp_data.h \
-$(top_srcdir)/ed25519/src/sc.h \
-$(top_srcdir)/ed25519/src/sc.c \
-$(top_srcdir)/ed25519/src/seed.c \
-$(top_srcdir)/ed25519/src/sha512.h \
-$(top_srcdir)/ed25519/src/sha512.c \
-$(top_srcdir)/ed25519/src/sign.c \
-$(top_srcdir)/ed25519/src/verify.c
+../ed25519/src/add_scalar.c \
+../ed25519/src/ed25519.h \
+../ed25519/src/fe.h \
+../ed25519/src/fe.c \
+../ed25519/src/fixedint.h \
+../ed25519/src/ge.h \
+../ed25519/src/ge.c \
+../ed25519/src/key_exchange.c \
+../ed25519/src/keypair.c \
+../ed25519/src/precomp_data.h \
+../ed25519/src/sc.h \
+../ed25519/src/sc.c \
+../ed25519/src/seed.c \
+../ed25519/src/sha512.h \
+../ed25519/src/sha512.c \
+../ed25519/src/sign.c \
+../ed25519/src/verify.c
 
 
 libcommon_la_SOURCES = \

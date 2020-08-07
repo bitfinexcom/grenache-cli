@@ -37,7 +37,7 @@ AC_CONFIG_SRCDIR([include/io.h])
 AC_CONFIG_HEADERS([config.h])
 
 AC_CANONICAL_HOST
-AM_INIT_AUTOMAKE([foreign no-dist-gzip dist-xz])
+AM_INIT_AUTOMAKE([foreign no-dist-gzip dist-xz subdir-objects])
 AM_EXTRA_RECURSIVE_TARGETS([install-man])
 
 AX_IS_RELEASE([git-directory])
