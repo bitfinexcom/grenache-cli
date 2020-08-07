@@ -24,10 +24,10 @@
 #ifdef HAVE_C99_INLINE
 # define INLINE inline
 #else
-# define INLINE static inline
+# define INLINE
 #endif
 
-#ifdef HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
+#if defined(HAVE_C99_INLINE) && defined(HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE)
 # define ALWAYS_INLINE __attribute__ ((__always_inline__))
 #else
 # define ALWAYS_INLINE

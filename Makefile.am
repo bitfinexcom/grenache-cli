@@ -37,8 +37,7 @@ DISTCLEANFILES = \
 config.h.in~
 
 MAINTAINERCLEANFILES = \
-$(DISTCLEANFILES) \
-README
+$(DISTCLEANFILES)
 
 dist-hook: dist-ChangeLog
 
