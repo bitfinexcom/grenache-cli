@@ -26,7 +26,7 @@ case "${1}" in
   ;;
   * )
     autoreconf --force --install --include 'm4'
-    [[ -x shtool ]] || shtoolize -q 'echo'
     [[ -d autom4te.cache ]] && rm -rf autom4te.cache
+    [[ -x shtool ]] || PERL5OPT='-M-warnings=deprecated' shtoolize -q 'echo'
   ;;
 esac
