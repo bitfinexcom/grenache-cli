@@ -29,18 +29,17 @@ EXTRA_DIST = \
 LICENSE \
 README.md \
 autogen.sh \
-shtool
+shtool \
+ed25519/readme.md \
+ed25519/license.txt
 
 DISTCLEANFILES = \
 config.h.in~
 
 MAINTAINERCLEANFILES = \
-$(DISTCLEANFILES) \
-README
+$(DISTCLEANFILES)
 
 dist-hook: dist-ChangeLog
-	cp -fpR $(top_srcdir)/ed25519 $(distdir)
-	$(RM) -rf $(distdir)/ed25519/.git
 
 maintainer-clean-local: maintainer-clean-local-check
 

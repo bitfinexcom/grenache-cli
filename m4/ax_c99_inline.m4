@@ -12,6 +12,10 @@
 #   and "extern inline" correctly. An application may replace "inline" with
 #   "static inline" as a workaround for older compilers.
 #
+#   Note: a slightly modified version by Davide Scola <davide@bitfinex.com>
+#         - fix a warning with newer versions of autoconf (for more details
+#           see https://autotools.io/forwardporting/autoconf.html)
+#
 # LICENSE
 #
 #   Copyright (c) 2009 Michael McMaster <email@michaelmcmaster.name>
@@ -35,10 +39,10 @@ AC_DEFUN([AX_C99_INLINE], [
 	dnl	GCC versions before 4.3 would output the inline functions into all
 	dnl	translation units that could require the definition.
 	AC_LINK_IFELSE(
-		AC_LANG_SOURCE([
+		[AC_LANG_SOURCE([
 			inline void* foo() { foo(); return &foo; }
 			int main() { return foo() != 0;}
-			]),
+			])],
 
 		dnl the invalid source compiled, so the inline keyword does not work
 		dnl correctly.
@@ -46,10 +50,10 @@ AC_DEFUN([AX_C99_INLINE], [
 
 		dnl Secondary test of valid source.
 		AC_LINK_IFELSE(
-			AC_LANG_SOURCE([
+			[AC_LANG_SOURCE([
 				extern inline void* foo() { foo(); return &foo; }
 				int main() { return foo() != 0;}
-				]),
+				])],
 
 			AC_MSG_RESULT([yes])
 			AC_DEFINE([HAVE_C99_INLINE], [1],
