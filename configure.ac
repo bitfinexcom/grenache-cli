@@ -1,6 +1,6 @@
 dnl This file is part of Grenache Command Line Interface.
 dnl
-dnl Copyright (C) 2017, 2018, 2019, 2020 Davide Scola <davide@bitfinex.com>
+dnl Copyright (C) 2017-2021 Davide Scola <davide@bitfinex.com>
 dnl
 dnl Licensed under the Apache License,  Version 2.0 (the "License"); you may
 dnl not use this file except in  compliance with the License. You may obtain
@@ -21,7 +21,7 @@ AC_SUBST([VERSION], [0.7.1])
 AC_SUBST([SB], [`$srcdir/shtool echo -n -e %B`])
 AC_SUBST([EB], [`$srcdir/shtool echo -n -e %b`])
 
-AC_COPYRIGHT([Copyright (c) 2017, 2018, 2019, 2020 Davide Scola, <davide@bitfinex.com>
+AC_COPYRIGHT([Copyright (c) 2017-2021 Davide Scola, <davide@bitfinex.com>
 This configure script may be copied, distributed and modified under the
 terms of the Apache License 2.0 license; see LICENSE for more details.])
 

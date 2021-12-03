@@ -10,6 +10,7 @@
 <img align="right" width="15%" src="https://github.com/bitfinexcom/grenache/raw/master/logos/logo-square.png" />
 
  * [Introduction](#introduction)
+ * [Copying](#copying)
  * [Prerequisites](#prerequisites)
  * [Install](#install)
  * [Initialize](#initialize)
@@ -25,6 +26,13 @@
 ## Introduction
 
 The [**Grenache**](https://github.com/bitfinexcom/grenache) **C**ommand **L**ine **I**nterface is a set of tools to use the [grenache-grape](https://github.com/bitfinexcom/grenache-grape) suite directly from your command line. Using this set of tools you can create fancy scripts that communicate directly with the DHT.
+
+
+## Copying
+
+The [**Grenache**](https://github.com/bitfinexcom/grenache) **C**ommand **L**ine **I**nterface is free software. See the files whose names start with _LICENSE_ (case-insensitive) for copying permission. The manuals, and some of the runtime libraries, are under different terms; see the individual source files for details.
+
+Copyright years on [**Grenache**](https://github.com/bitfinexcom/grenache) **C**ommand **L**ine **I**nterface source files may be listed using range notation, e.g., 2017-2021, indicating that every year in the range, inclusive, is a copyrightable year that could otherwise be listed individually.
 
 
 ## Prerequisites
