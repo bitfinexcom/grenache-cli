@@ -17,7 +17,7 @@ AC_DEFUN([AX_DEFINE_DESCRIPTOR], [
   AS_LITERAL_IF([$2], [], [AC_FATAL([$0: requires literal arguments])])
   AS_LITERAL_IF([$3], [], [AC_FATAL([$0: requires literal arguments])])
 
-  AC_ARG_WITH(m4_tolower($1), AC_HELP_STRING(m4_tolower(--with-$1),
+  AC_ARG_WITH(m4_tolower($1), AS_HELP_STRING(m4_tolower(--with-$1),
     [Set the $2 file descriptor @<:@default=$3@:>@]),
     ac_cv_[]m4_tolower($1)="${withval:-yes}", ac_cv_[]m4_tolower($1)="$3")
 

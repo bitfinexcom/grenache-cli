@@ -15,6 +15,7 @@
 #   Note: a slightly modified version by Davide Scola <davide@bitfinex.com>
 #         - fix a warning with newer versions of autoconf (for more details
 #           see https://autotools.io/forwardporting/autoconf.html)
+#         - replaced obsolete macro `AC_PROG_CC_C99' with `AC_PROG_CC'
 #
 # LICENSE
 #
@@ -29,7 +30,7 @@
 
 AC_DEFUN([AX_C99_INLINE], [
 	AC_MSG_CHECKING([whether the compiler supports C99 inline functions])
-	AC_REQUIRE([AC_PROG_CC_C99])
+	AC_REQUIRE([AC_PROG_CC])
 
 	AC_LANG_PUSH([C])
 

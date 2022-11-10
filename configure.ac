@@ -14,8 +14,8 @@ dnl WITHOUT  WARRANTIES  OR  CONDITIONS  OF  ANY  KIND,  either  express  or
 dnl implied. See the License for the specific language governing permissions
 dnl and limitations under the License.
 
-AC_PREREQ(2.69)
-AC_INIT([grenache-cli], [0.7.1], [davide@bitfinex.com])
+AC_PREREQ([2.69])
+AC_INIT([grenache-cli],[0.7.1],[davide@bitfinex.com])
 
 AC_SUBST([VERSION], [0.7.1])
 AC_SUBST([SB], [`$srcdir/shtool echo -n -e %B`])
@@ -57,7 +57,6 @@ AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_PROG_LIBTOOL
 AC_PROG_AWK
 AM_MISSING_PROG([HELP2MAN], [help2man])
 
@@ -103,9 +102,8 @@ dnl Checks for header files.
 dnl --------------------------------------------------------------------
 AX_MSG_BOLD([Checking for required header files])
 
-AC_HEADER_STDC
 AC_CHECK_HEADERS([sys/random.h])
-AC_CHECK_HEADERS([fcntl.h unistd.h], [], [
+AC_CHECK_HEADERS([fcntl.h stdint.h unistd.h], [], [
   AC_MSG_ERROR([missing $ac_header vital header file])
 ])
 
@@ -135,7 +133,7 @@ AC_CHECK_FUNCS([getentropy], [
   CPPFLAGS="-DED25519_NO_SEED ${CPPFLAGS}"
 ])
 
-AC_CHECK_FUNCS([explicit_bzero], [], [
+AC_CHECK_FUNCS([explicit_bzero select], [], [
   AC_MSG_ERROR([missing $ac_func vital function])
 ])
 
@@ -144,7 +142,7 @@ dnl Checks for user defined options.
 dnl --------------------------------------------------------------------
 AX_MSG_BOLD([Checking user defined options])
 
-AC_ARG_ENABLE([x86-features], AC_HELP_STRING([--enable-x86-features],
+AC_ARG_ENABLE([x86-features], AS_HELP_STRING([--enable-x86-features],
   [Enable the x86 features check @<:@default=yes@:>@]),
   [ax_cv_enable_x86_features="${enableval}"], [ax_cv_enable_x86_features='yes'])
 
