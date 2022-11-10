@@ -144,7 +144,7 @@ dnl Checks for user defined options.
 dnl --------------------------------------------------------------------
 AX_MSG_BOLD([Checking user defined options])
 
-AC_ARG_ENABLE([x86-features], AC_HELP_STRING([--enable-x86-features],
+AC_ARG_ENABLE([x86-features], AS_HELP_STRING([--enable-x86-features],
   [Enable the x86 features check @<:@default=yes@:>@]),
   [ax_cv_enable_x86_features="${enableval}"], [ax_cv_enable_x86_features='yes'])
 
