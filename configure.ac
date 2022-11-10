@@ -57,7 +57,6 @@ AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_PROG_LIBTOOL
 AC_PROG_AWK
 AM_MISSING_PROG([HELP2MAN], [help2man])
 
@@ -103,7 +102,6 @@ dnl Checks for header files.
 dnl --------------------------------------------------------------------
 AX_MSG_BOLD([Checking for required header files])
 
-AC_HEADER_STDC
 AC_CHECK_HEADERS([sys/random.h])
 AC_CHECK_HEADERS([fcntl.h stdint.h unistd.h], [], [
   AC_MSG_ERROR([missing $ac_header vital header file])
