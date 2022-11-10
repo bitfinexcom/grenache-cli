@@ -27,6 +27,10 @@
 #   See also AX_CHECK_X86_FEATURES, which checks all the possible
 #   instruction set and export the corresponding CFLAGS.
 #
+#   Note: a slightly modified version by Davide Scola <davide@bitfinex.com>
+#         - default case  during cross-compilation for  the `AC_RUN_IFELSE'
+#           macro has been added
+#
 # LICENSE
 #
 #   Copyright (c) 2016 Felix Chern <idryman@gmail.com>
@@ -68,6 +72,7 @@ AC_DEFUN_ONCE([_AX_GCC_X86_CPU_INIT],
         [__builtin_cpu_init ();])
       ],
       [ax_cv_gcc_check_x86_cpu_init=yes],
+      [ax_cv_gcc_check_x86_cpu_init=no],
       [ax_cv_gcc_check_x86_cpu_init=no])])
   AC_LANG_POP([C])
   AS_IF([test "X$ax_cv_gcc_check_x86_cpu_init" = "Xno"],
@@ -89,6 +94,7 @@ AC_DEFUN([AX_GCC_X86_CPU_SUPPORTS],
          return 1;
         ])],
         [gcc_x86_feature=yes],
+        [gcc_x86_feature=no],
         [gcc_x86_feature=no]
      )]
    )
