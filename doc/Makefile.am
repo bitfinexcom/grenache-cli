@@ -21,6 +21,7 @@ grenache-get.1 \
 grenache-put.1 \
 grenache-keygen.1 \
 grenache-lookup.1 \
+grenache-request.1 \
 grenache-announce.1
 
 MAINTAINERCLEANFILES = \

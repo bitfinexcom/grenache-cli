@@ -20,6 +20,7 @@
  * [Retreive items from the DHT](#retreive-items-from-the-dht)
  * [Lookup peers](#lookup-peers)
  * [Announce services](#announce-services)
+ * [Query services](#query-services)
  * [Maintainers](#maintainers)
 
 
@@ -179,6 +180,55 @@ A JSON stream can also be required (perhaps to implement a network service with 
 
 ```bash
 grenache-announce --help
+```
+
+to retrieve the complete options list.
+
+
+## Query services
+
+The `grenache-request` command sends a request to a service in the DHT. To query the [rest:ext:helpdesk:foo](https://github.com/bitfinexcom/bfx-ext-helpdesk-js) service, simply run something like this:
+
+```bash
+grenache-request 'rest:ext:helpdesk:foo' 'getDepartments'
+```
+
+Action arguments are optional and can be omitted altogether. However, to pass an argument to an action, use the `-a` switch or its long form `--arg`; to query the [rest:net:util](https://github.com/bitfinexcom/bfx-util-net-js) service in order to get information about IP _208.67.222.222_, simply run something like this:
+
+```bash
+grenache-request -a '"208.67.222.222"' 'rest:util:net' 'getIpInfo'
+```
+
+To send multiple arguments, simply repeat the `-a` switch or its long form `--arg` as many times as needed; arguments will be passed to the service action in the same order as they were supplied on the command line. To query the [rest:ext:gpg](https://github.com/bitfinexcom/bfx-ext-gpg-js) service in order to get a signature for the _hello_ message, simply run something like this:
+
+```bash
+grenache-request -a '"68656c6c6f"' -a '{"userId":1}' 'rest:ext:gpg' 'getDigitalSignature'
+```
+
+Arguments are treated as _JSON_-encoded text; sometimes, when dealing with plain strings, this can be somewhat cumbersome. In such cases, the `-s` switch or its long form `--string` can be used to pass a string as-is or `-n` or its long form `--numeric` when accepting an option that is intended to be treated as a numeric value.
+
+Typically, the output is a _JSON_-encoded text. Sometimes, filtering this text can be useful; in such cases, output can be selected using the `-q` switch or its long form `--query`, as shown below:
+
+```bash
+grenache-request -q 'map(select(.active_members > 3))' 'rest:ext:helpdesk:bar' 'getTeams'
+```
+
+The query is passed as-is to [jq](https://jqlang.github.io/jq/) and will be applied directly to the third position of the response array; refer to the official [filter documentation](https://jqlang.github.io/jq/manual/#basic-filters) for more details on the syntax to be used. However, there are cases where a plain string written directly to the standard output is preferable rather than formatted as a _JSON_ string with quotes, perhaps when pipe the output to another command; in such cases, the `-r` switch or its long form `--raw` can be used, as shown below:
+
+```bash
+grenache-request -q '.[1].timezone' -r -s '208.67.222.222' 'rest:util:net' 'getIpGeo'
+```
+
+Under normal circumstances, workflow is to look up the service via [grenache-lookup](#lookup-peers) and then send the request to the worker. There might be cases, perhaps when dealing with a system without a running [grape](https://github.com/bitfinexcom/grenache-grape), where it would be useful to query a service without looking it up first; in such cases, the `-w` switch or its long form `--worker` can be used, as shown below:
+
+```bash
+grenache-request -r -s '776f726c64' -a '{"userId":8}' -w '10.0.0.1:1337' 'rest:ext:gpg' 'getDigitalSignature'
+```
+
+Those are the main options; see
+
+```bash
+grenache-request --help
 ```
 
 to retrieve the complete options list.
