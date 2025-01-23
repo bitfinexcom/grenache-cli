@@ -1,0 +1,225 @@
+#!/bin/bash
+############################################################################
+# This file is part of Grenache Command Line Interface.                    #
+#                                                                          #
+# Copyright (C) 2017-2025 Davide Scola <davide@bitfinex.com>               #
+#                                                                          #
+# Licensed under the Apache License,  Version 2.0 (the "License"); you may #
+# not use this file except in  compliance with the License. You may obtain #
+# a copy of the License at                                                 #
+#                                                                          #
+#       http://www.apache.org/licenses/LICENSE-2.0                         #
+#                                                                          #
+# Unless  required by  applicable law  or agreed  to in  writing, software #
+# distributed  under the  License  is  distributed on  an  "AS IS"  BASIS, #
+# WITHOUT  WARRANTIES  OR  CONDITIONS  OF  ANY  KIND,  either  express  or #
+# implied. See the License for the specific language governing permissions #
+# and limitations under the License.                                       #
+############################################################################
+
+readonly ME="${BASH_SOURCE[0]}"
+readonly WHOAMI="$(@READLINK@ -snf "${ME}")"
+readonly ARGV=$(@GETOPT@ -o 'a:cg:hn:p:q:rs:tVw:' --long 'arg:,color,grape:,help,numeric:,port:,query:,raw,string:,tls,version,worker:' -n "${ME##*/}" -- "$@") || exit 1
+
+TLS=''
+COLOR=''
+EXIT_CODE=1
+REQUEST_ARGC=0
+RESPONSE_ARGV=()
+REQUEST_WORKER=''
+REQUEST_QUERY='.'
+RESPONSE_QUERY='.'
+REQUEST_ARGUMENTS='[]'
+LOOKUP_ARGV=(--random)
+REQUEST_ARGV=(--compact-output --monochrome-output)
+
+
+# Show program's help.
+function show_help {
+  @CAT@ <<_EOF
+${ME##*/} sends a request to a service in the DHT
+
+Usage: ${ME##*/} [OPTION]... SERVICE ACTION
+
+Options:
+   -a, --arg                            Add an argument, JSON encoded
+   -c, --color                          Pretty print
+   -g, --grape                          Set the Grape hostname
+   -n, --numeric                        Add a numeric argument
+   -p, --port                           Set the Grape port number
+   -q, --query                          Filter response against query
+   -r, --raw                            Print string output as-is
+   -s, --string                         Add a string argument
+   -t, --tls                            Enable TLS
+   -w, --worker                         Don't lookup, use this worker
+
+   -h, --help                           Show help message
+   -V, --version                        Show version information
+
+The \`--arg', \`--numeric' and \`--string' options  can be repeated several times
+to add multiple arguments, which will be passed in the same order as they were
+supplied on the command line.
+
+Examples:
+    ${ME##*/} 'foo' 'bar'        Call the bar action of the foo service
+    ${ME##*/} -n 1 'foo' 'bar'   The same thing, but passing a numeric argument
+
+Report bugs to <@PACKAGE_BUGREPORT@>.
+_EOF
+
+  exit 1
+}
+
+# Show program's version.
+function show_version {
+  @CAT@ <<_EOF
+${WHOAMI##*/} @PACKAGE_VERSION@
+
+Copyright (C) 2017-2025 Davide Scola <@PACKAGE_BUGREPORT@>
+This is free software; see the  source for copying conditions.  There is
+NO warranty;  not even for  MERCHANTABILITY or FITNESS FOR  A PARTICULAR
+PURPOSE.
+
+Written by Davide Scola.
+_EOF
+
+  exit 1
+}
+
+
+while true; do
+  case "$1" in
+    -a | --arg )
+      REQUEST_ARGV+=(--arg "a$((++REQUEST_ARGC))" "${2}")
+      REQUEST_QUERY+=' += [ $a'"${REQUEST_ARGC}"' | fromjson ] | .'; shift 2
+      ;;
+    -c | --color )
+      COLOR='yes'; shift 1
+      ;;
+    -g | --grape )
+      [[ -z "${2}" ]] && {
+        echo "${ME##*/}: error: empty Grape hostname." >&2
+        exit 1
+      }
+
+      LOOKUP_ARGV+=(--grape "${2}"); shift 2
+      ;;
+    -h | --help )
+      show_help; shift 1
+      ;;
+    -n | --numeric )
+      REQUEST_ARGV+=(--arg "n$((++REQUEST_ARGC))" "${2}")
+      REQUEST_QUERY+=' += [ $n'"${REQUEST_ARGC}"' | tonumber ] | .'; shift 2
+      ;;
+    -p | --port )
+      [[ -z "${2}" ]] && {
+        echo "${ME##*/}: error: empty Grape port." >&2
+        exit 1
+      }
+
+      LOOKUP_ARGV+=(--port "${2}"); shift 2
+      ;;
+    -q | --query )
+      [[ -z "${2}" ]] && {
+        echo "${ME##*/}: error: empty response query." >&2
+        exit 1
+      }
+
+      RESPONSE_QUERY="${2}"; shift 2
+      ;;
+    -r | --raw )
+      RESPONSE_ARGV+=(--raw-output); shift 1
+      ;;
+    -s | --string )
+      REQUEST_ARGV+=(--arg "s$((++REQUEST_ARGC))" "${2}")
+      REQUEST_QUERY+=' += [ $s'"${REQUEST_ARGC}"' | tostring ] | .'; shift 2
+      ;;
+    -t | --tls )
+      TLS='yes'; LOOKUP_ARGV+=(--tls); shift 1
+      ;;
+    -V | --version )
+      show_version; shift 1
+      ;;
+    -w | --worker )
+      [[ -z "${2}" ]] && {
+        echo "${ME##*/}: error: empty worker address." >&2
+        exit 1
+      }
+
+      [[ "${2##*:}" =~ ^[0-9]+$ ]] || {
+        echo "${ME##*/}: error: invalid worker port number." >&2
+        exit 1
+      }
+
+      [[ "$((${2##*:} & 0xFFFF))" -eq 0 ]] && {
+        echo "${ME##*/}: error: worker port number must be greater than zero." >&2
+        exit 1
+      }
+
+      [[ "${2##*:}" -ne "$((${2##*:} & 0xFFFF))" ]] && {
+        echo "${ME##*/}: error: worker port number too big." >&2
+        exit 1
+      }
+
+      REQUEST_WORKER="${2%:*}:$((${2##*:} & 0xFFFF))"; shift 2
+      ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
+[[ -z "${COLOR}" ]] && {
+  RESPONSE_ARGV+=(--compact-output --monochrome-output)
+}
+
+[[ "${#}" -lt 2 ]] && {
+  show_help
+}
+
+[[ -f "${HOME}/.grenache-cli/grenache-cli.conf" ]] || {
+  echo "${ME##*/}: error: you need to run \`grenache-keygen' first." >&2
+  exit "${EXIT_CODE}"
+}
+
+exec {stderr}>&2
+
+[[ x"${GRENACHE_CLI_DEBUG:+set}" != xset ]] && {
+  exec 2>/dev/null
+}
+
+[[ "${REQUEST_ARGC}" -gt 0 ]] && {
+  REQUEST_ARGUMENTS="$(@JQ@ "${REQUEST_ARGV[@]}" --from-file <(echo "${REQUEST_QUERY}") <<<"${REQUEST_ARGUMENTS}")"
+
+  [[ "${?}" -ne 0 ]] && {
+    echo "${ME##*/}: error: provided arguments are invalid." >&"${stderr}"
+
+    exec {stderr}>&-
+    exit "${EXIT_CODE}"
+  }
+}
+
+JSON="$(@CURL@ -qK "${HOME}/.grenache-cli/grenache-cli.conf" -A '@PACKAGE@/@PACKAGE_VERSION@' "http${TLS:+s}://${REQUEST_WORKER:-$(grenache-lookup "${LOOKUP_ARGV[@]}" "${1}")}" < <( \
+  @JQ@ --null-input --compact-output --monochrome-output \
+    --arg 'action' "${2}" \
+    --arg 'service' "${1}" \
+    --arg 'rid' "$(@UUIDGEN@)" \
+    --arg 'args' "${REQUEST_ARGUMENTS}" \
+    '[ $rid, $service, { "action": $action, "args": $args | fromjson } ]' \
+))"
+
+[[ -z "${JSON}" ]] && {
+  echo "${ME##*/}: error: service ${1} cannot be queried." >&"${stderr}"
+
+  exec {stderr}>&-
+  exit "${EXIT_CODE}"
+}
+
+@JQ@ --exit-status '.[1]' >/dev/null <<<"${JSON}" && {
+  @JQ@ --raw-output '.[1]' <<<"${JSON}" >&"${stderr}"
+} || {
+  EXIT_CODE=0
+  @JQ@ "${RESPONSE_ARGV[@]}" --from-file <(printf '.[2] | %s' "${RESPONSE_QUERY}") <<<"${JSON}"
+}
+
+exec {stderr}>&-
+exit "${EXIT_CODE}"

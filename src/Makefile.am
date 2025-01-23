@@ -31,6 +31,7 @@ grenache-put \
 grenache-get \
 grenache-keygen \
 grenache-lookup \
+grenache-request \
 grenache-announce
 
 noinst_LTLIBRARIES = \
