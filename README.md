@@ -13,6 +13,8 @@
  - [Copying](#copying)
  - [Prerequisites](#prerequisites)
  - [Install](#install)
+    - [Verifying the distribution](#verifying-the-distribution)
+    - [Install from source](#install-from-source)
  - [Initialize](#initialize)
  - [Store items to the DHT](#store-items-to-the-dht)
     - [Immutable items](#immutable-items)
@@ -45,14 +47,65 @@ Be sure that your version of [grenache-grape](https://github.com/bitfinexcom/gre
 
 ## Install
 
-Briefly, the shell command
+The [**Grenache**](https://github.com/bitfinexcom/grenache) **C**ommand **L**ine **I**nterface relies on the [GNU Build System](https://www.gnu.org/software/automake/manual/html_node/GNU-Build-System.html). In the case where source code has been taken directly from this repository, several files related to the build system have to be generated manually; this can be achieved by running:
+
+```bash
+./autogen.sh
+```
+
+However, this requires a number of development tools that are not needed to run the [**Grenache**](https://github.com/bitfinexcom/grenache) **C**ommand **L**ine **I**nterface and are, usually, unlikely to be already installed on the user's operating system. Refer to the [official documentation](https://www.gnu.org/software/automake/manual/html_node/Autotools-Introduction.html) for all the required tools as well as the operating system literature on how to install them.
+
+The preferred method of installing the [**Grenache**](https://github.com/bitfinexcom/grenache) **C**ommand **L**ine **I**nterface is to download the distribution archives, available under the [Releases](https://github.com/bitfinexcom/grenache-cli/releases) section of this repository. The download of the several files can be automated using something similar, which will always fetch all assets of the [latest release](https://github.com/bitfinexcom/grenache-cli/releases/latest) available:
+
+```bash
+parallel --color --no-run-if-empty 'wget --no-verbose --continue' < <( \
+  jq --raw-output 'try(.assets[]) | .browser_download_url // empty' < <( \
+    curl --silent 'https://api.github.com/repos/bitfinexcom/grenache-cli/releases/latest' \
+  ) \
+)
+```
+
+Although it is not required, it is worth verifying all the assets before taking any other action; refer to the [Verifying the distribution](#verifying-the-distribution) section for more details.
+
+### Verifying the distribution
+
+Unless already done in the past, it is required to import the [GnuPG](https://www.gnupg.org/) key of the packaging system in order to verify the authenticity of the distribution. Starting with version [0.8.0](https://github.com/bitfinexcom/grenache-cli/releases/tag/0.8.0), every released asset is signed using the key [94282D2E89053665952D3E7034C1AE501F0C2C6F](https://keys.openpgp.org/vks/v1/by-fingerprint/94282D2E89053665952D3E7034C1AE501F0C2C6F); older versions may have been signed with a different key, however, the same procedure applies.
+
+To import the packaging system key within the local keyring, something like this is enough:
+
+```bash
+gpg --keyserver 'hkps://keys.openpgp.org' --recv-keys '94282D2E89053665952D3E7034C1AE501F0C2C6F'
+```
+
+Optionally, the packaging system key can be marked as *trusted* within the local keyring, such as via `--lsign-key`, making the verification process straightforward. However, in cases where this does not meet a user's security standards and the version of [GnuPG](https://www.gnupg.org/) in use is fairly recent, setting a [TOFU](https://www.gnupg.org/documentation/manuals/gnupg/GPG-Configuration-Options.html#index-trust_002dmodel) trust policy might be a suitable trade-off:
+
+```bash
+gpg --tofu-policy 'good' '94282D2E89053665952D3E7034C1AE501F0C2C6F'
+```
+
+In order to verify the authenticity of downloaded assets, something similar can be used:
+
+```bash
+parallel --color 'gpg --trust-model "tofu+pgp" --verify' ::: *.asc
+```
+
+Finally, in case the downloaded release provides a list of file checksums, this can be verified using something like this:
+
+```bash
+parallel --color --match '(\w+)sums\.asc$' \
+  'gpg  --trust-model "tofu+pgp" --decrypt "{}" | cksum --algorithm "{1.1}" --check --ignore-missing' \
+::: *sums.asc
+```
+
+### Install from source
+
+Regardless of either source code has been taken directly from this repository or the sources archive has been unpacked, the shell command:
 
 ```bash
 ./configure && make && make install
 ```
 
-should configure, build and install this package.
-
+should configure, build and install the [**Grenache**](https://github.com/bitfinexcom/grenache) **C**ommand **L**ine **I**nterface.
 
 ## Initialize
 
