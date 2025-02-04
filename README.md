@@ -1,32 +1,34 @@
 # Grenache CLI
 
 ![license](https://img.shields.io/github/license/bitfinexcom/grenache-cli.svg)
-![GitHub (pre-)release](https://img.shields.io/github/release/bitfinexcom/grenache-cli/all.svg)
-![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/bitfinexcom/grenache-cli.svg)
+![GitHub release](https://img.shields.io/github/release/bitfinexcom/grenache-cli/all.svg)
+![GitHub release date](https://img.shields.io/github/release-date/bitfinexcom/grenache-cli.svg)
 ![GitHub last commit](https://img.shields.io/github/last-commit/bitfinexcom/grenache-cli.svg)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/bitfinexcom/grenache-cli.svg)
-![stability-unstable](https://img.shields.io/badge/stability-unstable-yellow.svg)
+![stability-stable](https://img.shields.io/badge/stability-stable-green.svg)
 
 <img align="right" width="15%" src="https://github.com/bitfinexcom/grenache/raw/master/logos/logo-square.png" />
 
- * [Introduction](#introduction)
- * [Copying](#copying)
- * [Prerequisites](#prerequisites)
- * [Install](#install)
- * [Initialize](#initialize)
- * [Store items to the DHT](#store-items-to-the-dht)
-   * [Immutable items](#immutable-items)
-   * [Mutable items](#mutable-items)
- * [Retreive items from the DHT](#retreive-items-from-the-dht)
- * [Lookup peers](#lookup-peers)
- * [Announce services](#announce-services)
- * [Query services](#query-services)
- * [Maintainers](#maintainers)
+ - [Introduction](#introduction)
+ - [Copying](#copying)
+ - [Prerequisites](#prerequisites)
+ - [Install](#install)
+ - [Initialize](#initialize)
+ - [Store items to the DHT](#store-items-to-the-dht)
+    - [Immutable items](#immutable-items)
+    - [Mutable items](#mutable-items)
+ - [Retreive items from the DHT](#retreive-items-from-the-dht)
+ - [Lookup peers](#lookup-peers)
+ - [Announce services](#announce-services)
+ - [Query services](#query-services)
+ - [Maintainers](#maintainers)
 
 
 ## Introduction
 
 The [**Grenache**](https://github.com/bitfinexcom/grenache) **C**ommand **L**ine **I**nterface is a set of tools to use the [grenache-grape](https://github.com/bitfinexcom/grenache-grape) suite directly from your command line. Using this set of tools you can create fancy scripts that communicate directly with the DHT.
+
+All command lines presented in this document are for illustrative purposes only and could make use of tools not available on the user's operating system or provided in a different version, whereby some capabilities may not be available.
 
 
 ## Copying
@@ -238,4 +240,4 @@ to retrieve the complete options list.
 
 Current maintainers:
 
-* Davide Scola - davide@bitfinex.com
+- [Davide Scola](https://github.com/davide-scola)
