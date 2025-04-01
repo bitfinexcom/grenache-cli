@@ -19,7 +19,7 @@
 
 readonly ME="${BASH_SOURCE[0]}"
 readonly WHOAMI="$(@READLINK@ -snf "${ME}")"
-readonly ARGV=$(@GETOPT@ -o 'a:cg:hn:p:q:rs:tVw:' --long 'arg:,color,grape:,help,numeric:,port:,query:,raw,string:,tls,version,worker:' -n "${ME##*/}" -- "$@") || exit 1
+readonly ARGV=$(@GETOPT@ -o 'a:cg:hn:p:q:rs:StVw:' --long 'arg:,color,grape:,help,numeric:,port:,query:,raw,string:,stream,tls,version,worker:' -n "${ME##*/}" -- "$@") || exit 1
 
 TLS=''
 COLOR=''
@@ -29,6 +29,7 @@ RESPONSE_ARGV=()
 REQUEST_WORKER=''
 REQUEST_QUERY='.'
 RESPONSE_QUERY='.'
+CURL_EXTRA_OPTS=()
 REQUEST_ARGUMENTS='[]'
 LOOKUP_ARGV=(--random)
 REQUEST_ARGV=(--compact-output --monochrome-output)
@@ -50,6 +51,7 @@ Options:
    -q, --query                          Filter response against query
    -r, --raw                            Print string output as-is
    -s, --string                         Add a string argument
+   -S, --stream                         Enable streaming data transfer
    -t, --tls                            Enable TLS
    -w, --worker                         Don't lookup, use this worker
 
@@ -134,6 +136,9 @@ while true; do
       REQUEST_ARGV+=(--arg "s$((++REQUEST_ARGC))" "${2}")
       REQUEST_QUERY+=' += [ $s'"${REQUEST_ARGC}"' | tostring ] | .'; shift 2
       ;;
+    -S | --stream )
+      CURL_EXTRA_OPTS+=(--http1.1 --header 'Transfer-Encoding: chunked'); shift 1
+      ;;
     -t | --tls )
       TLS='yes'; LOOKUP_ARGV+=(--tls); shift 1
       ;;
@@ -198,7 +203,7 @@ exec {stderr}>&2
   }
 }
 
-JSON="$(@CURL@ -qK "${HOME}/.grenache-cli/grenache-cli.conf" -A '@PACKAGE@/@PACKAGE_VERSION@' "http${TLS:+s}://${REQUEST_WORKER:-$(grenache-lookup "${LOOKUP_ARGV[@]}" "${1}")}" < <( \
+JSON="$(@CURL@ -qK "${HOME}/.grenache-cli/grenache-cli.conf" -A '@PACKAGE@/@PACKAGE_VERSION@' "${CURL_EXTRA_OPTS[@]}" "http${TLS:+s}://${REQUEST_WORKER:-$(grenache-lookup "${LOOKUP_ARGV[@]}" "${1}")}" < <( \
   @JQ@ --null-input --compact-output --monochrome-output \
     --arg 'action' "${2}" \
     --arg 'service' "${1}" \
